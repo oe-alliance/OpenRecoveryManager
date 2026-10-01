@@ -2,7 +2,7 @@
 #define RECOVERY_VERSION_H
 
 #ifndef ORM_VERSION
-#define ORM_VERSION "1.0"  /* A push of a new version to master tags and releases it as v<version>. */
+#define ORM_VERSION "1.1"  /* A push of a new version to master tags and releases it as v<version>. */
 #endif
 
 #ifndef ORM_REVISION

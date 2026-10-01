@@ -50,6 +50,7 @@ static int languages;  /* HELP is there: another language than English is instal
 static int in_entry;  /* The screen of an entry has the keys. */
 static int jump_to = -1;  /* The entry a digit chose there, opened once back in the menu. */
 static char item_marks[16];  /* Grey entries, which digits do not open. */
+static int from_shell;  /* Started by hand, no start script acts on the exit code. */
 
 static void signal_handler(int signal_number)
 {
@@ -330,7 +331,7 @@ static long long milliseconds(void)
 	return (long long)now.tv_sec * 1000 + now.tv_nsec / 1000000;
 }
 
-static const char *const names[] = {  /* Translated where they are shown. */
+static const char *names[] = {  /* Translated where they are shown. */
 	N_("Restart Enigma2"),
 	N_("Show crash log"),
 	N_("Send crash report"),
@@ -341,7 +342,7 @@ static const char *const names[] = {  /* Translated where they are shown. */
 	N_("Flash online/local"),
 	N_("Boot another slot")
 };
-static const char *const icons[] = {UI_ICON_RESTART, UI_ICON_LOG, UI_ICON_REPORT, UI_ICON_PLUGINS, UI_ICON_UPDATE,
+static const char *icons[] = {UI_ICON_RESTART, UI_ICON_LOG, UI_ICON_REPORT, UI_ICON_PLUGINS, UI_ICON_UPDATE,
 	UI_ICON_RESET, UI_ICON_BACKUP, UI_ICON_FLASH, UI_ICON_SLOT};
 static const int actions[] = {ACTION_START, ACTION_CRASH_LOG, ACTION_CRASH_REPORT, ACTION_PLUGINS,
 	ACTION_UPDATE, ACTION_RESET, ACTION_BACKUP, ACTION_FLASH, ACTION_SLOT};
@@ -353,7 +354,7 @@ static void system_info(char *text, size_t size);
 static void preview(const struct ui_context *ui, int item, const struct watch_result *result, const char *info,
 	const char *footer)
 {
-	static const char *const texts[] = {
+	static const char *texts[] = {
 		N_("Starts Enigma2 again. If a plugin keeps it from starting, disable the plugin first."),
 		N_("Shows the newest crash log of Enigma2. BLUE shows the steps of the last start."),
 		NULL,  /* With the distribution, see below. */
@@ -374,6 +375,9 @@ static void preview(const struct ui_context *ui, int item, const struct watch_re
 	char card_title[160];
 	char card[512];
 	const char *extra = NULL;
+	if (from_shell)
+		texts[0] = N_("Ends the Open Recovery Manager. Enigma2 stays stopped until it is started again, e.g. with "
+			"init 3.");
 	describe(result, card_title, sizeof(card_title), card, sizeof(card));
 	if (actions[item] == ACTION_START)
 		extra = info;
@@ -697,6 +701,50 @@ static int run_menu(const struct watch_result *watch, int countdown)
 	return result;
 }
 
+/* The parent is an interactive shell: sh, ash, bash or dash, also as login shell -sh, without arguments. A start
+ * script, like sh enigma2.sh or sh -c, acts on the exit code itself. */
+static int started_from_shell(void)
+{
+	static const char *const shells[] = {"sh", "ash", "bash", "dash"};
+	char path[32];
+	char cmdline[256] = "";  /* Zeroed, so the read stays terminated. */
+	const char *name;
+	size_t length;
+	FILE *file;
+	snprintf(path, sizeof(path), "/proc/%d/cmdline", (int)getppid());
+	if (!(file = fopen(path, "r")))
+		return 0;
+	length = fread(cmdline, 1, sizeof(cmdline) - 1, file);
+	fclose(file);
+	if (!length || length > strlen(cmdline) + 1)
+		return 0;
+	name = strrchr(cmdline, '/');
+	name = name ? name + 1 : cmdline;
+	if (*name == '-')
+		name++;
+	for (size_t i = 0; i < sizeof(shells) / sizeof(shells[0]); ++i)
+		if (strcmp(name, shells[i]) == 0)
+			return 1;
+	return 0;
+}
+
+/* Powers off or reboots like enigma2.sh, for a start by hand. */
+static void power(int action)
+{
+	FILE *file;
+	if (action == ACTION_POWER_OFF)
+		execl("/sbin/halt", "halt", (char *)NULL);
+	else if (action == ACTION_REBOOT) {
+		if ((file = fopen("/proc/stb/fp/force_restart", "w"))) {
+			fputs("1", file);
+			fclose(file);
+		}
+		execl("/sbin/reboot", "reboot", (char *)NULL);
+	} else
+		return;
+	perror("power");
+}
+
 static void usage(FILE *out, const char *program)
 {
 	fprintf(out,
@@ -733,8 +781,17 @@ int main(int argc, char **argv)
 			return ACTION_START;
 		return run_menu(&result, COUNTDOWN_SECONDS);
 	}
-	if (argc == 2 && strcmp(argv[1], "--manual") == 0)
-		return run_menu(NULL, 0);
+	if (argc == 2 && strcmp(argv[1], "--manual") == 0) {
+		int action;
+		if ((from_shell = started_from_shell())) {
+			names[0] = N_("Exit");
+			icons[0] = UI_ICON_EXIT;
+		}
+		action = run_menu(NULL, 0);
+		if (from_shell)
+			power(action);
+		return action;
+	}
 	if (argc == 2 && strcmp(argv[1], "--version") == 0) {
 		printf("recovery-manager %s\n", orm_version());
 		return 0;

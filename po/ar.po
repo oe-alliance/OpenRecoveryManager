@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 22:30+0000\n"
+"POT-Creation-Date: 2026-10-01 09:17+0000\n"
 "PO-Revision-Date: 2026-09-30 09:30+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: Arabic\n"
@@ -261,6 +261,14 @@ msgid "Restarts the receiver with the image of another slot."
 msgstr "يعيد تشغيل الجهاز بصورة النظام من فتحة أخرى."
 
 #: src/main.c
+msgid ""
+"Ends the Open Recovery Manager. Enigma2 stays stopped until it is started "
+"again, e.g. with init 3."
+msgstr ""
+"يُنهي Open Recovery Manager. يبقى Enigma2 متوقفًا حتى يتم تشغيله مرة أخرى، "
+"مثلًا باستخدام init 3."
+
+#: src/main.c
 #, c-format
 msgid "Newest crash log: %s"
 msgstr "أحدث سجل أعطال: %s"
@@ -318,6 +326,10 @@ msgstr ""
 "%s %s (%s)\n"
 "%s %s، الإصدار %s (%s)\n"
 "مراجعة Enigma2 %s"
+
+#: src/main.c
+msgid "Exit"
+msgstr "خروج"
 
 #: src/remote.c
 msgid ""

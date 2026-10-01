@@ -19,6 +19,7 @@
 #define UI_ICON_BACKUP "\xEF\x87\x8D"
 #define UI_ICON_FLASH "\xEF\x8B\x9B"
 #define UI_ICON_SLOT "\xEF\x97\xBD"
+#define UI_ICON_EXIT "\xEF\x8B\xB5"
 
 struct ui_color {
 	uint8_t r;
