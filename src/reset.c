@@ -131,7 +131,8 @@ void reset_settings(const struct ui_context *ui, struct input_context *input,
 		items[1] = _("Everything, including channel lists and timers");
 		snprintf(body, sizeof(body), _("What should be reset? Enigma2 then starts with the wizard, which offers to "
 			"restore a backup. The files are kept in a folder next to %s, the network settings stay."), CONFIG);
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Reset"), NULL, NULL, NULL, NULL, _("Menu"));
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Reset"),
+			.back = _("Menu")});
 		ui_menu(ui, TITLE, body, items, 2, selected, footer);
 		key = input_next(input, 1000);
 		selected = list_move(key, selected, 2);
@@ -152,7 +153,7 @@ void reset_settings(const struct ui_context *ui, struct input_context *input,
 				_("The settings were reset, the old file is kept in %s."), kept);
 			snprintf(text + strlen(text), sizeof(text) - strlen(text), "\n\n%s",
 				_("Restart Enigma2 in the menu to start with the wizard."));
-			ui_keys(footer, sizeof(footer), NULL, NULL, NULL, _("Menu"), NULL, NULL, NULL, NULL, NULL);
+			ui_keys(footer, sizeof(footer), &(struct ui_key_names){.ok = _("Menu")});
 			ui_screen(ui, TITLE, text, footer);
 			wait_ok(input, stop);
 			return;

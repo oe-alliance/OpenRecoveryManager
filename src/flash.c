@@ -1165,10 +1165,12 @@ static int choose_feed(const struct ui_context *ui, struct input_context *input,
 		items[i] = feeds[i].name;
 	while (!(stop && *stop)) {
 		enum input_key key;
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Choose"), NULL, NULL, NULL, NULL, _("Images"));
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Choose"),
+			.back = _("Images")});
 		snprintf(title, sizeof(title), "%s - %s", TITLE, _("Distribution"));
-		ui_menu_marked(ui, title, _("Which distribution should the images come from?"),
-			items, count, selected, current, footer);
+		ui_menu_marked(ui, &(struct ui_menu){.title = title,
+			.body = _("Which distribution should the images come from?"), .items = items, .count = count,
+			.selected = selected, .marked = current, .footer = footer});
 		key = input_next(input, 1000);
 		selected = list_move(key, selected, count);
 		if (key == INPUT_OK)
@@ -1232,7 +1234,7 @@ static int wait_download(const struct ui_context *ui, struct input_context *inpu
 			snprintf(detail, sizeof(detail), _("%lld of %lld MB"), got / MB, (image->size + MB / 2) / MB);
 		else
 			snprintf(detail, sizeof(detail), _("%lld MB"), got / MB);
-		ui_keys(footer, sizeof(footer), NULL, NULL, NULL, NULL, _("Cancel"), NULL, NULL, NULL, NULL);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.red = _("Cancel")});
 		ui_progress(ui, TITLE, body, image->size > 0 ? (int)(got * 100 / image->size) : 0, detail, footer);
 		key = input_next(input, 250);
 		if (key == INPUT_RED || key == INPUT_BACK || (stop && *stop)) {
@@ -1514,8 +1516,8 @@ static void show_flash_log(const struct ui_context *ui, struct input_context *in
 		snprintf(note, sizeof(note), _("Flashing failed, see %s."), FLASH_LOG);
 	snprintf(footer, sizeof(footer), "%s   ARROWS: %s   OK: %s", note, _("Scroll"), _("Menu"));
 	do
-		key = text_view(ui, input, stop, output->title, NULL, output->lines, output->count, &first, NULL,
-			_("ofgwrite wrote nothing."), footer);
+		key = text_view(ui, input, stop, &(struct text_page){.title = output->title, .lines = output->lines,
+			.count = output->count, .first = &first, .empty = _("ofgwrite wrote nothing."), .footer = footer});
 	while (key != INPUT_OK && key != INPUT_BACK && key != INPUT_RED && key != INPUT_NONE);
 }
 
@@ -1633,12 +1635,13 @@ static int check_image(struct ui_context *ui, struct input_context *input, const
 	snprintf(title, sizeof(title), "%s - %s\t%s - %s", TITLE, _("Check"), ok ? UI_GREEN : UI_RED,
 		ok ? _("The check was successful") : _("The check failed"));
 	if (ok)
-		ui_keys(keys, sizeof(keys), _("Scroll"), NULL, NULL, _("Flash now"), NULL, NULL, NULL, NULL, _("Back"));
+		ui_keys(keys, sizeof(keys), &(struct ui_key_names){.arrows = _("Scroll"), .ok = _("Flash now"),
+			.back = _("Back")});
 	else
-		ui_keys(keys, sizeof(keys), _("Scroll"), NULL, NULL, _("Back"), NULL, NULL, NULL, NULL, NULL);
+		ui_keys(keys, sizeof(keys), &(struct ui_key_names){.arrows = _("Scroll"), .ok = _("Back")});
 	do
-		key = text_view(ui, input, stop, title, NULL, output.lines, output.count, &first, NULL,
-			_("ofgwrite wrote nothing."), keys);
+		key = text_view(ui, input, stop, &(struct text_page){.title = title, .lines = output.lines,
+			.count = output.count, .first = &first, .empty = _("ofgwrite wrote nothing."), .footer = keys});
 	while (key != INPUT_OK && key != INPUT_BACK && key != INPUT_NONE);
 	live_output_free(&output);
 	if (ok && key == INPUT_OK && ask(ui, input, stop, TITLE, _("Flash the image now? The running image is "
@@ -1664,8 +1667,9 @@ static void confirm(struct ui_context *ui, struct input_context *input, const vo
 		snprintf(body, sizeof(body), "%s\n%s", _("Clean flash: all settings are lost, after the restart the most recent "
 			"backup can be restored."), _("The check only tests the image and writes nothing. After a "
 			"successful check, OK starts flashing."));
-		ui_keys(footer, sizeof(footer), NULL, NULL, NULL, _("Check"), NULL, NULL, NULL, NULL, _("Images"));
-		ui_menu_table(ui, TITLE, body, NULL, items, 5, -1, NULL, -1, NULL, footer);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.ok = _("Check"), .back = _("Images")});
+		ui_menu_table(ui, &(struct ui_menu){.title = TITLE, .body = body, .items = items, .count = 5, .selected = -1,
+			.marked = -1, .footer = footer});
 		key = input_next(input, 1000);
 		if (key == INPUT_BACK)
 			return;
@@ -1831,13 +1835,14 @@ void flash_image(struct ui_context *ui, struct input_context *input,
 			generation = i18n_generation();
 			build_rows(&l);
 		}
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, ok_label(&l, selected), NULL, NULL,
-			_("Distribution"), NULL, _("Menu"));
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = ok_label(&l, selected),
+			.yellow = _("Distribution"), .back = _("Menu")});
 		listing_body(&t, &l, media, body, sizeof(body));
 		snprintf(title, sizeof(title), "%s - %s", TITLE, feeds[current].name);
 		snprintf(header, sizeof(header), "%s\t%s", _("Image"), _("Size"));
-		ui_menu_table(ui, title, body, header, (const char *const *)l.items, l.row_count, selected,
-			l.marks, -1, "lr", footer);
+		ui_menu_table(ui, &(struct ui_menu){.title = title, .body = body, .header = header,
+			.items = (const char *const *)l.items, .count = l.row_count, .selected = selected, .marks = l.marks,
+			.marked = -1, .align = "lr", .footer = footer});
 		key = input_next(input, 1000);
 		if (key == INPUT_UP || key == INPUT_DOWN || key == INPUT_LEFT || key == INPUT_RIGHT)
 			selected = move_selection(&l, key, selected);

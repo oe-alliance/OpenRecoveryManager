@@ -206,9 +206,11 @@ static int choose_crash_log(const struct ui_context *ui, struct input_context *i
 	snprintf(header, sizeof(header), "%s\t%s\t%s", _("Date"), _("File"), _("Size"));
 	while (!stop_requested) {
 		enum input_key key;
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Show"), NULL, NULL, NULL, NULL, _("Back"));
-		ui_menu_table(ui, title, _("Which crash log should be shown? The newest is at the top."), header,
-			items, count, selected, NULL, -1, "llr", footer);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Show"),
+			.back = _("Back")});
+		ui_menu_table(ui, &(struct ui_menu){.title = title,
+			.body = _("Which crash log should be shown? The newest is at the top."), .header = header, .items = items,
+			.count = count, .selected = selected, .marked = -1, .align = "llr", .footer = footer});
 		key = input_next(input, 1000);
 		selected = list_move(key, selected, count);
 		if (key == INPUT_OK)
@@ -290,16 +292,18 @@ static void show_logs(const struct ui_context *ui, struct input_context *input)
 	snprintf(watch_title, sizeof(watch_title), ngettext("Socket log (%d line)", "Socket log (%d lines)", watch_count),
 		watch_count);
 	snprintf(watch_header, sizeof(watch_header), "%s\t%s\t%s", _("Time"), _("Duration"), _("Message"));
-	ui_keys(crash_footer, sizeof(crash_footer), _("Scroll"), NULL, NULL, NULL, NULL, NULL,
-		log_count > 1 ? _("Switch log") : NULL, _("Socket log"), _("Menu"));
-	ui_keys(watch_footer, sizeof(watch_footer), _("Scroll"), NULL, NULL, NULL, NULL, NULL, NULL, _("Crash log"), _("Menu"));
+	ui_keys(crash_footer, sizeof(crash_footer), &(struct ui_key_names){.arrows = _("Scroll"),
+		.yellow = log_count > 1 ? _("Switch log") : NULL, .blue = _("Socket log"), .back = _("Menu")});
+	ui_keys(watch_footer, sizeof(watch_footer), &(struct ui_key_names){.arrows = _("Scroll"), .blue = _("Crash log"),
+		.back = _("Menu")});
 	blue_taken = 1;
 	for (;;) {
 		enum input_key key = socket_log ?
-			text_view(ui, input, &stop_requested, watch_title, watch_header, watch_lines,
-				watch_count, &watch_first, "rr", _("There is no log of the last start."), watch_footer) :
-			text_view(ui, input, &stop_requested, title, NULL, lines, count, &first, NULL,
-				_("There is no crash log."), crash_footer);
+			text_view(ui, input, &stop_requested, &(struct text_page){.title = watch_title, .header = watch_header,
+				.lines = watch_lines, .count = watch_count, .first = &watch_first, .align = "rr",
+				.empty = _("There is no log of the last start."), .footer = watch_footer}) :
+			text_view(ui, input, &stop_requested, &(struct text_page){.title = title, .lines = lines, .count = count,
+				.first = &first, .empty = _("There is no crash log."), .footer = crash_footer});
 		if (key == INPUT_BLUE)
 			socket_log = !socket_log;
 		else if (key == INPUT_YELLOW && !socket_log && log_count > 1) {
@@ -388,8 +392,10 @@ static void preview(const struct ui_context *ui, int item, const struct watch_re
 			"developers can find the error. You see everything before it is sent."), distro[0] ? distro : "OpenATV");
 	} else
 		snprintf(description, sizeof(description), "%s", _(texts[item]));
-	ui_preview(ui, _(names[item]), actions[item] == ACTION_START ? card_title : NULL,
-		actions[item] == ACTION_START ? card : NULL, result != NULL, description, extra, footer);
+	ui_preview(ui, &(struct ui_card_page){.title = _(names[item]),
+		.card_title = actions[item] == ACTION_START ? card_title : NULL,
+		.card = actions[item] == ACTION_START ? card : NULL, .warn = result != NULL,
+		.body = description, .info = extra, .footer = footer});
 }
 
 /* Grey and not selectable: not every image has the command line of CrashReport, not every receiver multiboot. */

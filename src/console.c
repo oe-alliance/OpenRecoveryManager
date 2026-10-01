@@ -88,7 +88,7 @@ int console_ask(const struct console *c, const char *title, const char *question
 	deadline = (long long)now.tv_sec * 1000 + now.tv_nsec / 1000000 + seconds * 1000LL;
 	items[0] = _("Yes");
 	items[1] = _("No");
-	ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Answer"), NULL, NULL, NULL, NULL, NULL);
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Answer")});
 	ui_overlay(c->ui, 1);  /* The screen below comes back after the answer. */
 	while (!answered && !console_stopped(c)) {
 		long long remaining;

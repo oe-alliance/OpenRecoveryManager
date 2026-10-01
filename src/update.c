@@ -45,7 +45,7 @@ static void message(const struct ui_context *ui, struct input_context *input,
 	const volatile sig_atomic_t *stop, const char *text, int error)
 {
 	char footer[64];
-	ui_keys(footer, sizeof(footer), NULL, NULL, NULL, _("Menu"), NULL, NULL, NULL, NULL, NULL);
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.ok = _("Menu")});
 	if (error)
 		ui_error(ui, TITLE, text);
 	else
@@ -304,9 +304,11 @@ static int confirm(const struct ui_context *ui, struct input_context *input,
 	snprintf(packages, sizeof(packages), ngettext("%d package", "%d packages", p->upgrade_count), p->upgrade_count);
 	snprintf(title, sizeof(title), "%s, %s, %s", TITLE, packages, _(feeds[feed]));
 	snprintf(header, sizeof(header), "%s\t%s\t%s", _("Package"), _("Installed"), _("New"));
-	ui_keys(footer, sizeof(footer), _("Scroll"), NULL, NULL, _("Update now"), NULL, NULL, NULL, NULL, _("Menu"));
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Scroll"), .ok = _("Update now"),
+		.back = _("Menu")});
 	do
-		key = text_view(ui, input, stop, title, header, lines, count, &first, NULL, "", footer);
+		key = text_view(ui, input, stop, &(struct text_page){.title = title, .header = header, .lines = lines,
+			.count = count, .first = &first, .empty = "", .footer = footer});
 	while (key != INPUT_OK && key != INPUT_BACK && key != INPUT_RED && key != INPUT_NONE);
 	free(lines);
 	return key == INPUT_OK;

@@ -116,8 +116,10 @@ void language_choose(const struct ui_context *ui, struct input_context *input, c
 	selected = current;
 	while (!(stop && *stop)) {
 		enum input_key key;
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Choose"), NULL, NULL, NULL, NULL, _("Back"));
-		ui_menu_marked(ui, _("Language"), NULL, items, count, selected, current, footer);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Choose"),
+			.back = _("Back")});
+		ui_menu_marked(ui, &(struct ui_menu){.title = _("Language"), .items = items, .count = count,
+			.selected = selected, .marked = current, .footer = footer});
 		key = input_next(input, 1000);
 		selected = list_move(key, selected, count);
 		if (key == INPUT_OK && i18n_set(languages[index[selected]].locale))

@@ -12,16 +12,16 @@
 #define LIVE_MAX_LINES 4000
 
 enum input_key text_view(const struct ui_context *ui, struct input_context *input,
-	const volatile sig_atomic_t *stop, const char *title, const char *header,
-	char *const *lines, int count, int *first, const char *align, const char *empty,
-	const char *footer)
+	const volatile sig_atomic_t *stop, const struct text_page *page)
 {
-	const char *const nothing[] = {empty};
+	const char *const nothing[] = {page->empty};
+	int count = page->count;
+	int *first = page->first;
 	while (!(stop && *stop)) {
 		enum input_key key;
-		int rows = ui_text(ui, title, count ? header : NULL,
-			count ? (const char *const *)lines : nothing, count ? count : 1, *first,
-			align, footer);
+		int rows = ui_text(ui, &(struct ui_text_page){.title = page->title, .header = count ? page->header : NULL,
+			.lines = count ? (const char *const *)page->lines : nothing, .count = count ? count : 1,
+			.first = *first, .align = page->align, .footer = page->footer});
 		int last = count > rows ? count - rows : 0;
 		key = input_next(input, 1000);
 		if (key == INPUT_UP)
@@ -70,7 +70,7 @@ int ask(const struct ui_context *ui, struct input_context *input, const volatile
 		enum input_key key;
 		items[0] = _("Yes");
 		items[1] = _("No");
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Confirm"), NULL, NULL, NULL, NULL, NULL);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Confirm")});
 		ui_menu(ui, title, question, items, 2, selected, footer);
 		key = input_next(input, 1000);
 		selected = list_move(key, selected, 2);
@@ -154,12 +154,13 @@ void live_output_tick(void *opaque)
 	struct live_output *output = opaque;
 	int first;
 	if (!output->rows)  /* The first drawing tells how many rows fit. */
-		output->rows = ui_text(output->ui, output->title, NULL, waiting, 1, 0, NULL, output->footer);
+		output->rows = ui_text(output->ui, &(struct ui_text_page){.title = output->title, .lines = waiting,
+			.count = 1, .footer = output->footer});
 	output->drawn = milliseconds();
 	first = output->count > output->rows ? output->count - output->rows : 0;
-	output->rows = ui_text(output->ui, output->title, NULL,
-		output->count ? (const char *const *)output->lines : waiting,
-		output->count ? output->count : 1, first, NULL, output->footer);
+	output->rows = ui_text(output->ui, &(struct ui_text_page){.title = output->title,
+		.lines = output->count ? (const char *const *)output->lines : waiting,
+		.count = output->count ? output->count : 1, .first = first, .footer = output->footer});
 }
 
 void live_output_view(const struct live_output *output, struct input_context *input, const volatile sig_atomic_t *stop,
@@ -172,8 +173,8 @@ void live_output_view(const struct live_output *output, struct input_context *in
 	snprintf(title, sizeof(title), "%s\n%s%s", output->title ? output->title : "", ok ? UI_GREEN : UI_RED, note);
 	snprintf(footer, sizeof(footer), "ARROWS: %s   OK: %s", _("Scroll"), _("Menu"));
 	do
-		key = text_view(output->ui, input, stop, title, NULL, output->lines, output->count, &first, NULL,
-			_("Please wait..."), footer);
+		key = text_view(output->ui, input, stop, &(struct text_page){.title = title, .lines = output->lines,
+			.count = output->count, .first = &first, .empty = _("Please wait..."), .footer = footer});
 	while (key != INPUT_OK && key != INPUT_BACK && key != INPUT_NONE);
 }
 

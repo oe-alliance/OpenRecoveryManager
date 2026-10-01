@@ -917,27 +917,26 @@ int ui_sidebar_focus(const struct ui_context *ui, int focused)
 
 /* The screens on the right */
 
-void ui_preview(const struct ui_context *ui, const char *title, const char *card_title, const char *text,
-	int warn, const char *body, const char *info, const char *footer_keys)
+void ui_preview(const struct ui_context *ui, const struct ui_card_page *p)
 {
 	uint64_t hash = hash_int(14695981039346656037ULL, 8);
 	(void)ui;
-	hash = hash_text(hash_text(hash_text(hash_text(hash_text(hash_text(hash_int(hash, warn), title), card_title),
-		text), body), info), footer_keys);
+	hash = hash_text(hash_text(hash_text(hash_text(hash_text(hash_text(hash_int(hash, p->warn), p->title),
+		p->card_title), p->card), p->body), p->info), p->footer);
 	if (display && !same_frame(hash)) {
 		lv_obj_t *root = page(NULL);
-		if (text) {
-			card(root, card_title, text, warn ? CARD_WARN : CARD_INFO, 1);
+		if (p->card) {
+			card(root, p->card_title, p->card, p->warn ? CARD_WARN : CARD_INFO, 1);
 			root = column(root, px(24));  /* In line with the text of the card. */
 			lv_obj_set_width(root, LV_PCT(100));
 			lv_obj_set_style_pad_hor(root, px(30), 0);
 		}
-		heading(root, title);
-		if (body && *body)
-			paragraph(root, body, FONT_TEXT, COLOR_BODY);
-		if (info && *info)
-			paragraph(root, info, FONT_SMALL, COLOR_MUTED);
-		footer_set(footer_keys);
+		heading(root, p->title);
+		if (p->body && *p->body)
+			paragraph(root, p->body, FONT_TEXT, COLOR_BODY);
+		if (p->info && *p->info)
+			paragraph(root, p->info, FONT_SMALL, COLOR_MUTED);
+		footer_set(p->footer);
 	}
 	render();
 }
@@ -959,24 +958,26 @@ void ui_menu(const struct ui_context *ui, const char *title, const char *body,
 	const char *const items[], int item_count, int selected,
 	const char *footer_keys)
 {
-	ui_menu_marked(ui, title, body, items, item_count, selected, -1, footer_keys);
+	ui_menu_marked(ui, &(struct ui_menu){.title = title, .body = body, .items = items, .count = item_count,
+		.selected = selected, .marked = -1, .footer = footer_keys});
 }
 
-void ui_menu_marked(const struct ui_context *ui, const char *title, const char *body,
-	const char *const items[], int item_count, int selected, int marked,
-	const char *footer_keys)
+void ui_menu_marked(const struct ui_context *ui, const struct ui_menu *m)
 {
 	/* The current one is named in the text, colors stay for the selection and for problems. */
 	char current[256];
-	const char **named = marked >= 0 && marked < item_count ? malloc((size_t)item_count * sizeof(*named)) : NULL;
+	struct ui_menu table = {.title = m->title, .body = m->body, .items = m->items, .count = m->count,
+		.selected = m->selected, .marked = -1, .footer = m->footer};
+	const char **named = m->marked >= 0 && m->marked < m->count ? malloc((size_t)m->count * sizeof(*named)) : NULL;
 	if (!named) {
-		ui_menu_table(ui, title, body, NULL, items, item_count, selected, NULL, -1, NULL, footer_keys);
+		ui_menu_table(ui, &table);
 		return;
 	}
-	memcpy(named, items, (size_t)item_count * sizeof(*named));
-	snprintf(current, sizeof(current), _("%s (current)"), items[marked]);
-	named[marked] = current;
-	ui_menu_table(ui, title, body, NULL, named, item_count, selected, NULL, -1, NULL, footer_keys);
+	memcpy(named, m->items, (size_t)m->count * sizeof(*named));
+	snprintf(current, sizeof(current), _("%s (current)"), m->items[m->marked]);
+	named[m->marked] = current;
+	table.items = named;
+	ui_menu_table(ui, &table);
 	free(named);
 }
 
@@ -1106,18 +1107,15 @@ static void list(lv_obj_t *root, const struct list_items *l)
 	free(heights);
 }
 
-static void menu_table(const char *title, const char *info, const char *body, const struct list_items *l,
-	const char *footer_keys)
+static void menu_table(const char *title, const char *body, const struct list_items *l, const char *footer_keys)
 {
 	uint64_t hash = hash_int(14695981039346656037ULL, 2);
-	hash = hash_text(hash_text(hash_text(hash_text(hash_text(hash, title), info), body), l->header_text), footer_keys);
+	hash = hash_text(hash_text(hash_text(hash_text(hash, title), body), l->header_text), footer_keys);
 	hash = hash_text(hash_int(hash_int(hash_int(hash, l->count), l->selected), l->marked), l->align);
 	for (int i = 0; i < l->count; ++i)
 		hash = hash_int(hash_text(hash, l->items[i]), l->marks ? l->marks[i] : 0);
 	if (display && !same_frame(hash)) {
 		lv_obj_t *root = page(title);
-		if (info && *info)
-			paragraph(root, info, FONT_SMALL, COLOR_MUTED);
 		if (body && *body)
 			paragraph(root, body, FONT_TEXT, COLOR_BODY);
 		footer_set(footer_keys);
@@ -1126,21 +1124,11 @@ static void menu_table(const char *title, const char *info, const char *body, co
 	render();
 }
 
-void ui_menu_table(const struct ui_context *ui, const char *title, const char *body,
-	const char *header_text, const char *const items[], int item_count, int selected,
-	const char *marks, int marked, const char *align, const char *footer_keys)
+void ui_menu_table(const struct ui_context *ui, const struct ui_menu *m)
 {
-	const struct list_items l = {header_text, items, item_count, selected, marks, marked, align};
+	const struct list_items l = {m->header, m->items, m->count, m->selected, m->marks, m->marked, m->align};
 	(void)ui;
-	menu_table(title, NULL, body, &l, footer_keys);
-}
-
-void ui_menu_info(const struct ui_context *ui, const char *title, const char *info, const char *body,
-	const char *const items[], int item_count, int selected, const char *marks, const char *footer_keys)
-{
-	const struct list_items l = {NULL, items, item_count, selected, marks, -1, NULL};
-	(void)ui;
-	menu_table(title, info, body, &l, footer_keys);
+	menu_table(m->title, m->body, &l, m->footer);
 }
 
 int ui_menu_rows(void)
@@ -1261,19 +1249,17 @@ static int text_view(const char *title, const char *header_text, const char *con
 	return rows;
 }
 
-int ui_text(const struct ui_context *ui, const char *title, const char *header_text,
-	const char *const lines[], int count, int first, const char *align,
-	const char *footer_keys)
+int ui_text(const struct ui_context *ui, const struct ui_text_page *p)
 {
 	static int last_rows = 1;
 	uint64_t hash = hash_int(14695981039346656037ULL, 5);
 	(void)ui;
-	hash = hash_text(hash_text(hash_text(hash_text(hash, title), header_text), align), footer_keys);
-	hash = hash_int(hash_int(hash, count), first);
-	for (int i = first; i < count && i < first + 200; ++i)  /* More rows never fit. */
-		hash = hash_text(hash, lines[i]);
+	hash = hash_text(hash_text(hash_text(hash_text(hash, p->title), p->header), p->align), p->footer);
+	hash = hash_int(hash_int(hash, p->count), p->first);
+	for (int i = p->first; i < p->count && i < p->first + 200; ++i)  /* More rows never fit. */
+		hash = hash_text(hash, p->lines[i]);
 	if (display && !same_frame(hash))
-		last_rows = text_view(title, header_text, lines, count, first, align, footer_keys);
+		last_rows = text_view(p->title, p->header, p->lines, p->count, p->first, p->align, p->footer);
 	render();
 	return last_rows;
 }
@@ -1313,32 +1299,30 @@ static lv_obj_t *qr_canvas(lv_obj_t *parent, const uint8_t *qrcode, int side)
 	return canvas;
 }
 
-void ui_remote_session(const struct ui_context *ui, const char *title,
-	const char *body, const char *link, const char *warning,
-	const uint8_t *qrcode, const char *qr_hint, const char *footer_keys)
+void ui_remote_session(const struct ui_context *ui, const struct ui_remote_page *p)
 {
 	uint64_t hash = hash_int(14695981039346656037ULL, 6);
 	(void)ui;
-	hash = hash_text(hash_text(hash_text(hash_text(hash_text(hash_text(hash, title), body), link), warning),
-		qr_hint), footer_keys);
-	if (qrcode) {
-		int size = qrcodegen_getSize(qrcode);
+	hash = hash_text(hash_text(hash_text(hash_text(hash_text(hash_text(hash, p->title), p->body), p->link),
+		p->warning), p->qr_hint), p->footer);
+	if (p->qrcode) {
+		int size = qrcodegen_getSize(p->qrcode);
 		for (int module = 0; module < size * size; ++module)
-			hash = hash_int(hash, qrcodegen_getModule(qrcode, module % size, module / size));
+			hash = hash_int(hash, qrcodegen_getModule(p->qrcode, module % size, module / size));
 	}
 	if (display && !same_frame(hash)) {
-		lv_obj_t *root = page(title);
+		lv_obj_t *root = page(p->title);
 		lv_obj_t *line = row(root, px(48));
 		lv_obj_t *text;
 		lv_obj_set_flex_align(line, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-		if (qrcode) {
+		if (p->qrcode) {
 			lv_obj_t *left = column(line, px(16));
 			const lv_obj_t *canvas;
 			lv_obj_set_width(left, LV_SIZE_CONTENT);
 			lv_obj_set_flex_align(left, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-			canvas = qr_canvas(left, qrcode, px(400));
-			if (canvas && qr_hint && *qr_hint) {
-				lv_obj_t *hint = paragraph(left, qr_hint, FONT_SMALL, COLOR_MUTED);
+			canvas = qr_canvas(left, p->qrcode, px(400));
+			if (canvas && p->qr_hint && *p->qr_hint) {
+				lv_obj_t *hint = paragraph(left, p->qr_hint, FONT_SMALL, COLOR_MUTED);
 				lv_obj_update_layout(canvas);
 				lv_obj_set_width(hint, lv_obj_get_width(canvas));
 				lv_obj_set_style_text_align(hint, LV_TEXT_ALIGN_CENTER, 0);
@@ -1347,12 +1331,12 @@ void ui_remote_session(const struct ui_context *ui, const char *title,
 		text = column(line, px(20));
 		lv_obj_set_width(text, LV_SIZE_CONTENT);
 		lv_obj_set_flex_grow(text, 1);
-		paragraph(text, body, FONT_TEXT, COLOR_BODY);
-		if (link && *link)
-			paragraph(text, link, FONT_TEXT, COLOR_LINK);
-		if (warning && *warning)
-			paragraph(text, warning, FONT_TEXT, COLOR_RED);
-		footer_set(footer_keys);
+		paragraph(text, p->body, FONT_TEXT, COLOR_BODY);
+		if (p->link && *p->link)
+			paragraph(text, p->link, FONT_TEXT, COLOR_LINK);
+		if (p->warning && *p->warning)
+			paragraph(text, p->warning, FONT_TEXT, COLOR_RED);
+		footer_set(p->footer);
 	}
 	render();
 }
@@ -1429,12 +1413,11 @@ void ui_redraw(const struct ui_context *ui)
 	render();
 }
 
-void ui_keys(char *footer_keys, size_t size, const char *arrows, const char *digit_keys,
-	const char *digits, const char *ok, const char *red, const char *green,
-	const char *yellow, const char *blue, const char *back)
+void ui_keys(char *footer_keys, size_t size, const struct ui_key_names *keys)
 {
-	const char *const names[] = {"ARROWS", digit_keys, "OK", "RED", "GREEN", "YELLOW", "BLUE", "BACK"};
-	const char *const texts[] = {arrows, digits, ok, red, green, yellow, blue, back};
+	const char *const names[] = {"ARROWS", keys->digit_keys, "OK", "RED", "GREEN", "YELLOW", "BLUE", "BACK"};
+	const char *const texts[] = {keys->arrows, keys->digits, keys->ok, keys->red, keys->green, keys->yellow,
+		keys->blue, keys->back};
 	size_t used = 0;
 	if (!size)
 		return;

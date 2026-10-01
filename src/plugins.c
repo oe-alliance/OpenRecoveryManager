@@ -602,8 +602,8 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 	char title[128];
 	int disabled = 0;
 	char header[96];
-	ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL,
-		l->items[selected].disabled ? _("Enable") : _("Disable"), NULL, NULL, NULL, NULL, _("Menu"));
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"),
+		.ok = l->items[selected].disabled ? _("Enable") : _("Disable"), .back = _("Menu")});
 	if (problems)
 		snprintf(body, sizeof(body), "%s", ngettext("The plugin that caused the problem is marked. Changes take "
 			"effect when Enigma2 starts again.", "The plugins that caused the problem are marked. Changes take "
@@ -633,7 +633,8 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 		snprintf(title, sizeof(title), ngettext("%s (%d disabled)", "%s (%d disabled)", disabled), TITLE, disabled);
 	else
 		snprintf(title, sizeof(title), "%s", TITLE);
-	ui_menu_table(ui, title, body, header, items, l->count, selected, marks, -1, NULL, footer);
+	ui_menu_table(ui, &(struct ui_menu){.title = title, .body = body, .header = header, .items = items,
+		.count = l->count, .selected = selected, .marks = marks, .marked = -1, .footer = footer});
 }
 
 /* 1 when nothing enabled uses item index or the user disables it anyway. */
@@ -649,7 +650,7 @@ static int confirm_disable(const struct ui_context *ui, struct input_context *in
 		return 1;
 	snprintf(text, sizeof(text), _("%s is used by %s.\n\nThey will not load while it is disabled. "
 		"Disable anyway?"), l->items[index].name, by);
-	ui_keys(keys, sizeof(keys), NULL, NULL, NULL, _("Disable"), NULL, NULL, NULL, NULL, _("Back"));
+	ui_keys(keys, sizeof(keys), &(struct ui_key_names){.ok = _("Disable"), .back = _("Back")});
 	ui_screen(ui, TITLE, text, keys);
 	return wait_ok(input, stop) == INPUT_OK;
 }

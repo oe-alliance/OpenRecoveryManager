@@ -52,26 +52,40 @@ void ui_sidebar_select(const struct ui_context *ui, int selected, int focused);
 /* Moves the keys between the menu and the screen, returns where they were. */
 int ui_sidebar_focus(const struct ui_context *ui, int focused);
 /* What an entry of the menu does: a card above the title (card NULL: none, warn: in amber), the
- * text and info below it in grey. */
-void ui_preview(const struct ui_context *ui, const char *title, const char *card_title, const char *card,
-	int warn, const char *body, const char *info, const char *footer);
+ * body and info below it in grey. */
+struct ui_card_page {
+	const char *title;
+	const char *card_title;
+	const char *card;
+	int warn;
+	const char *body;
+	const char *info;
+	const char *footer;
+};
+void ui_preview(const struct ui_context *ui, const struct ui_card_page *page);
 void ui_screen(const struct ui_context *ui, const char *title, const char *body,
 	const char *footer);
 void ui_menu(const struct ui_context *ui, const char *title, const char *body,
 	const char *const items[], int item_count, int selected,
 	const char *footer);
+/* A menu for the calls below, each uses only some fields. marked is -1 for none, so set it. */
+struct ui_menu {
+	const char *title;
+	const char *body;
+	const char *header;
+	const char *const *items;
+	int count;
+	int selected;
+	const char *marks;
+	int marked;
+	const char *align;
+	const char *footer;
+};
 /* Like ui_menu, the item marked (or -1) is the current one and says so. */
-void ui_menu_marked(const struct ui_context *ui, const char *title, const char *body,
-	const char *const items[], int item_count, int selected, int marked,
-	const char *footer);
+void ui_menu_marked(const struct ui_context *ui, const struct ui_menu *menu);
 /* A menu with columns like ui_text below header, marks[i] 1 draws item i in
  * yellow, 2 in grey (NULL: only marked in yellow). */
-void ui_menu_table(const struct ui_context *ui, const char *title, const char *body,
-	const char *header, const char *const items[], int item_count, int selected,
-	const char *marks, int marked, const char *align, const char *footer);
-/* Like ui_menu with info at the top in grey, marks like ui_menu_table or NULL. */
-void ui_menu_info(const struct ui_context *ui, const char *title, const char *info, const char *body,
-	const char *const items[], int item_count, int selected, const char *marks, const char *footer);
+void ui_menu_table(const struct ui_context *ui, const struct ui_menu *menu);
 /* The rows of the menu drawn last that fit on the screen. */
 int ui_menu_rows(void);
 /* The bytes at the start of text that fit on one line of ui_text, all without a screen. */
@@ -101,18 +115,41 @@ void ui_overlay(const struct ui_context *ui, int on);
  * The keys of a screen below it, always in the order ARROWS, digits, OK, RED,
  * GREEN, YELLOW, BLUE, BACK; NULL leaves a key out. digit_keys names the
  * digits, e.g. "1-9". A footer part without a key, like "Please wait...", shows in yellow. */
-void ui_keys(char *footer, size_t size, const char *arrows, const char *digit_keys,
-	const char *digits, const char *ok, const char *red, const char *green,
-	const char *yellow, const char *blue, const char *back);
+struct ui_key_names {
+	const char *arrows;
+	const char *digit_keys;
+	const char *digits;
+	const char *ok;
+	const char *red;
+	const char *green;
+	const char *yellow;
+	const char *blue;
+	const char *back;
+};
+void ui_keys(char *footer, size_t size, const struct ui_key_names *keys);
 
 /* Lines from first on, a tab separates columns as wide as their widest text.
  * align has 'l' or 'r' per column, NULL for left; the last column is cut at
  * the edge. A scrollbar shows when not all lines fit. Returns the rows that fit. */
-int ui_text(const struct ui_context *ui, const char *title, const char *header,
-	const char *const lines[], int count, int first, const char *align,
-	const char *footer);
-void ui_remote_session(const struct ui_context *ui, const char *title,
-	const char *body, const char *link, const char *warning,
-	const uint8_t *qrcode, const char *qr_hint, const char *footer);
+struct ui_text_page {
+	const char *title;
+	const char *header;
+	const char *const *lines;
+	int count;
+	int first;
+	const char *align;
+	const char *footer;
+};
+int ui_text(const struct ui_context *ui, const struct ui_text_page *page);
+struct ui_remote_page {
+	const char *title;
+	const char *body;
+	const char *link;
+	const char *warning;
+	const uint8_t *qrcode;
+	const char *qr_hint;
+	const char *footer;
+};
+void ui_remote_session(const struct ui_context *ui, const struct ui_remote_page *page);
 
 #endif

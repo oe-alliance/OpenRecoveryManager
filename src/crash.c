@@ -180,7 +180,8 @@ static int choose_logs(const struct ui_context *ui, struct input_context *input,
 		enum input_key key;
 		items[0] = _("Crash log only");
 		items[1] = _("Crash log and more details (recommended)");
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Confirm"), NULL, NULL, NULL, NULL, _("Menu"));
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Confirm"),
+			.back = _("Menu")});
 		/* TRANSLATORS: %s is the distribution, e.g. OpenATV. */
 		snprintf(question, sizeof(question), _("Which information should be sent to the %s ticket system? You see "
 			"everything before it is sent."), distro[0] ? distro : "OpenATV");
@@ -203,7 +204,7 @@ void crash_report(const struct ui_context *ui, struct input_context *input,
 	struct report *r;
 	char footer[64];
 	int choice;
-	ui_keys(footer, sizeof(footer), NULL, NULL, NULL, _("Menu"), NULL, NULL, NULL, NULL, NULL);
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.ok = _("Menu")});
 	if (access(CRASHREPORT, X_OK) != 0) {
 		ui_error(ui, TITLE, _("Crash reports are not installed. The CrashReport plugin provides them."));
 		wait_key(input, stop);
@@ -232,8 +233,8 @@ void crash_report(const struct ui_context *ui, struct input_context *input,
 		snprintf(body, sizeof(body), _("Tracking number: %s\n\nScan the QR code or open the link on a phone or PC. "
 			"Sign in and describe what happened, so the developers can help. The report stays open for 48 hours."),
 			r->tracking[0] ? r->tracking : _("unknown"));
-		ui_remote_session(ui, TITLE, body, r->console.link, NULL,
-			r->console.has_qrcode ? r->console.qrcode : NULL, NULL, footer);
+		ui_remote_session(ui, &(struct ui_remote_page){.title = TITLE, .body = body, .link = r->console.link,
+			.qrcode = r->console.has_qrcode ? r->console.qrcode : NULL, .footer = footer});
 	} else if (!r->status[0] || strncmp(r->status, "Error: ", 7) == 0)
 		ui_error(ui, TITLE, r->status[0] ? r->status + 7 : _("The crash report was not sent."));
 	else

@@ -7,11 +7,21 @@
 #include "input.h"
 #include "ui.h"
 
-/* Scrolls lines until a key that is no scroll key, which it returns. */
+/* Lines like ui_text from *first on, empty shows when there are none. */
+struct text_page {
+	const char *title;
+	const char *header;
+	char *const *lines;
+	int count;
+	int *first;
+	const char *align;
+	const char *empty;
+	const char *footer;
+};
+
+/* Scrolls the lines of page until a key that is no scroll key, which it returns. */
 enum input_key text_view(const struct ui_context *ui, struct input_context *input,
-	const volatile sig_atomic_t *stop, const char *title, const char *header,
-	char *const *lines, int count, int *first, const char *align, const char *empty,
-	const char *footer);
+	const volatile sig_atomic_t *stop, const struct text_page *page);
 
 /* UP and DOWN move one item and wrap, LEFT and RIGHT a page of the menu drawn last and stop at
  * its ends; other keys keep selected. */

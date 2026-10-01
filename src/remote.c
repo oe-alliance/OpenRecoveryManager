@@ -96,7 +96,7 @@ static void show_screen(const struct session *s)
 	char footer[160];
 	ui_busy(c->ui, !c->link[0]);  /* The start of the session takes a while. */
 	if (!c->link[0]) {
-		ui_keys(footer, sizeof(footer), NULL, NULL, NULL, NULL, _("Cancel"), NULL, NULL, NULL, NULL);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.red = _("Cancel")});
 		ui_progress(c->ui, TITLE, _("Starting the Remote Support session."), 50,
 			_("Connecting to the support server, this takes a few seconds."), footer);
 		return;
@@ -111,13 +111,14 @@ static void show_screen(const struct session *s)
 		s->in_ram ? _("The session keeps running in the menu and ends when Enigma2 starts.") :
 		_("The session keeps running in the menu and after Enigma2 starts."),
 		summary, s->ending ? "\n\n" : "", s->ending ? _("Ending the session...") : "");
-	ui_keys(footer, sizeof(footer), NULL, NULL, NULL, _("End session"), NULL, NULL, NULL, NULL, _("Menu"));
-	ui_remote_session(c->ui, TITLE, body, c->link,
-		_("Do not post the link or a screenshot of it in public forums: everybody who has it can try to join and "
-		"sees the terminals until you deny the access."),
-		c->has_qrcode ? c->qrcode : NULL,
-		c->qrcode_own ? _("Scan with your phone to send the link to your supporter") :
-		_("Scan to open the support session"), footer);
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.ok = _("End session"), .back = _("Menu")});
+	ui_remote_session(c->ui, &(struct ui_remote_page){.title = TITLE, .body = body, .link = c->link,
+		.warning = _("Do not post the link or a screenshot of it in public forums: everybody who has it can "
+		"try to join and sees the terminals until you deny the access."),
+		.qrcode = c->has_qrcode ? c->qrcode : NULL,
+		.qr_hint = c->qrcode_own ? _("Scan with your phone to send the link to your supporter") :
+		_("Scan to open the support session"),
+		.footer = footer});
 }
 
 static void show_end(const struct ui_context *ui, struct input_context *input,

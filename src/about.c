@@ -50,10 +50,10 @@ static void show_license(const struct ui_context *ui, struct input_context *inpu
 	int first = 0;
 	char footer[96];
 	enum input_key key;
-	ui_keys(footer, sizeof(footer), _("Scroll"), NULL, NULL, NULL, NULL, NULL, NULL, NULL, _("Back"));
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Scroll"), .back = _("Back")});
 	do
-		key = text_view(ui, input, stop, license->name, NULL, lines, count, &first, NULL, _("The license is empty."),
-			footer);
+		key = text_view(ui, input, stop, &(struct text_page){.title = license->name, .lines = lines, .count = count,
+			.first = &first, .empty = _("The license is empty."), .footer = footer});
 	while (key != INPUT_BACK && key != INPUT_OK && key != INPUT_NONE);
 	for (int i = 0; i < count; ++i)
 		free(lines[i]);
@@ -77,8 +77,10 @@ void about(const struct ui_context *ui, struct input_context *input, const volat
 		snprintf(body, sizeof(body), "Open Recovery Manager %s\n" COPYRIGHT "\n\n%s", orm_version(),
 			_("Free software under the GPLv3. OK shows the full license of each part."));
 		snprintf(header, sizeof(header), "%s\t%s\t%s", _("Component"), _("Part"), _("License"));
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("License"), NULL, NULL, NULL, NULL, _("Back"));
-		ui_menu_table(ui, TITLE, body, header, items, COUNT, selected, NULL, -1, NULL, footer);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("License"),
+			.back = _("Back")});
+		ui_menu_table(ui, &(struct ui_menu){.title = TITLE, .body = body, .header = header, .items = items,
+			.count = COUNT, .selected = selected, .marked = -1, .footer = footer});
 		key = input_next(input, 1000);
 		selected = list_move(key, selected, COUNT);
 		if (key == INPUT_OK)

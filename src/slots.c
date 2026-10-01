@@ -248,7 +248,8 @@ static int choose(const struct ui_context *ui, struct input_context *input,
 	char footer[128];
 	while (!(stop && *stop)) {
 		enum input_key key;
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Boot"), NULL, NULL, NULL, NULL, _("Menu"));
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Boot"),
+			.back = _("Menu")});
 		for (int i = 0; i < l->count; ++i) {
 			snprintf(labels[i], sizeof(labels[i]), _("Slot %s: %s"), l->slots[i].id, l->slots[i].text);
 			items[i] = labels[i];

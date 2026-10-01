@@ -502,8 +502,10 @@ static int choose_medium(const struct ui_context *ui, struct input_context *inpu
 	snprintf(header, sizeof(header), "%s\t%s", _("Medium"), _("Free"));
 	while (!(stop && *stop)) {
 		enum input_key key;
-		ui_keys(footer, sizeof(footer), _("Select"), NULL, NULL, _("Back up"), NULL, NULL, NULL, NULL, _("Menu"));
-		ui_menu_table(ui, TITLE, body, header, items, count, selected, marks, -1, "lr", footer);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Back up"),
+			.back = _("Menu")});
+		ui_menu_table(ui, &(struct ui_menu){.title = TITLE, .body = body, .header = header, .items = items,
+			.count = count, .selected = selected, .marks = marks, .marked = -1, .align = "lr", .footer = footer});
 		key = input_next(input, 1000);
 		if (key == INPUT_UP || key == INPUT_DOWN) {
 			int next = selected;
