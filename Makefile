@@ -3,7 +3,7 @@ CPPFLAGS ?=
 CFLAGS ?= -Os -pipe
 LDFLAGS ?=
 LOCALEDIR ?= /usr/share/locale
-# The commit, shown with the version.
+PLUGINDIR ?= /usr/lib/enigma2/python/Plugins/SystemPlugins/RecoveryManager
 REVISION ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 
 # LVGL is the submodule lib/lvgl, configured by include/lv_conf.h; qrcodegen.h is its copy of Nayuki's.
@@ -66,7 +66,8 @@ po/%.mo: po/%.po
 # The texts of the code for the translators, without line numbers, so only a changed text changes them.
 pot:
 	xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --keyword=ngettext:1,2 --add-comments=TRANSLATORS \
-		--add-location=file --package-name=ORM --msgid-bugs-address= -o po/orm.pot $(SOURCES) include/licenses.h
+		--add-location=file --package-name=ORM --msgid-bugs-address= -o po/orm.pot $(SOURCES) include/licenses.h \
+		plugin/*.py
 	for po in po/*.po; do [ -f "$$po" ] && msgmerge -q -U --backup=none --add-location=file "$$po" po/orm.pot || true; done
 
 install: $(PROGRAM) $(CATALOGS)
@@ -76,6 +77,8 @@ install: $(PROGRAM) $(CATALOGS)
 		install -d $(DESTDIR)$(LOCALEDIR)/$$language/LC_MESSAGES; \
 		install -m 0644 po/$$language.mo $(DESTDIR)$(LOCALEDIR)/$$language/LC_MESSAGES/orm.mo; \
 	done
+	install -d $(DESTDIR)$(PLUGINDIR)
+	install -m 0644 plugin/__init__.py plugin/plugin.py plugin/plugin.png plugin/plugin-fhd.png $(DESTDIR)$(PLUGINDIR)
 
 clean:
 	rm -f $(OBJECTS) $(LIBRARY_OBJECTS) $(DEPENDS) $(PROGRAM) $(CATALOGS)

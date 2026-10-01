@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 15:10+0000\n"
+"POT-Creation-Date: 2026-10-01 20:16+0000\n"
 "PO-Revision-Date: 2026-09-30 08:40+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: German\n"
@@ -1244,3 +1244,16 @@ msgstr "die Schrift"
 #: include/licenses.h
 msgid "the icons"
 msgstr "die Icons"
+
+#: plugin/plugin.py
+msgid "Enigma2 stops and the Open Recovery Manager starts instead. Continue?"
+msgstr ""
+"Enigma2 wird beendet und der Open Recovery Manager gestartet. Fortfahren?"
+
+#: plugin/plugin.py
+msgid "Recovery Manager"
+msgstr "Recovery Manager"
+
+#: plugin/plugin.py
+msgid "Restarts Enigma2 into the Open Recovery Manager."
+msgstr "Beendet Enigma2 und startet den Open Recovery Manager."
