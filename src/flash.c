@@ -3,6 +3,7 @@
 #include "flash.h"
 
 #include "boxinfo.h"
+#include "files.h"
 #include "i18n.h"
 #include "process.h"
 #include "reset.h"
@@ -1066,16 +1067,25 @@ static int newest_first(const void *a, const void *b)
 	return strcmp(y->name, x->name);
 }
 
+#define ROW_FEED (-3 - MAX_IMAGES)  /* The row of the distribution, above the categories. */
+
 struct listing {
 	struct image *images;  /* MAX_IMAGES + 1, the last one for parsing only. */
 	int count;
-	char **items;  /* Rows: a category, then its images. */
-	int *rows;  /* The image of a row, -2 - its first image for a category, -1 for none. */
+	char **items;  /* Rows: the distribution, a category, then its images. */
+	int *rows;  /* The image of a row, -2 - its first image for a category, -1 for none, ROW_FEED. */
 	char *marks;
 	char expanded[MAX_IMAGES + 1];  /* By the first image of a category, all start collapsed. */
 	int row_count;
 	int feed_ok;
+	const char *feed;  /* The name of the distribution. */
 };
+
+/* The first image of the category of row, -1 for another row. */
+static int category_of(const struct listing *l, int row)
+{
+	return l->rows[row] <= -2 && l->rows[row] != ROW_FEED ? -2 - l->rows[row] : -1;
+}
 
 static void free_rows(struct listing *l)
 {
@@ -1107,7 +1117,7 @@ static void add_category_row(struct listing *l, int first)
 
 static void build_rows(struct listing *l)
 {
-	int max = l->count * 2 + 1;
+	int max = l->count * 2 + 2;
 	int first = 0;
 	free_rows(l);
 	l->items = calloc((size_t)max, sizeof(*l->items));
@@ -1115,6 +1125,9 @@ static void build_rows(struct listing *l)
 	l->marks = calloc((size_t)max, sizeof(*l->marks));
 	if (!l->items || !l->rows || !l->marks)
 		return;
+	if (asprintf(&l->items[0], _("Distribution: %s"), l->feed ? l->feed : "") < 0)
+		l->items[0] = NULL;
+	l->rows[l->row_count++] = ROW_FEED;
 	for (int i = 0; i < l->count; ++i) {
 		const struct image *image = &l->images[i];
 		char size[32] = "";
@@ -1130,11 +1143,11 @@ static void build_rows(struct listing *l)
 			l->items[l->row_count] = NULL;
 		l->rows[l->row_count++] = i;
 	}
-	if (!l->row_count) {
-		l->items[0] = strdup(_("No images found"));
-		l->rows[0] = -1;
-		l->marks[0] = 2;
-		l->row_count = 1;
+	if (l->row_count == 1) {
+		l->items[1] = strdup(_("No images found"));
+		l->rows[1] = -1;
+		l->marks[1] = 2;
+		l->row_count = 2;
 	}
 }
 
@@ -1144,6 +1157,7 @@ static void load_images(const struct ui_context *ui, struct listing *l, const st
 	snprintf(text, sizeof(text), _("Loading the images of %s."), feed->name);
 	ui_progress(ui, TITLE, text, 20, _("Please wait..."), _("Please wait..."));
 	l->count = 0;
+	l->feed = feed->name;
 	l->feed_ok = feed_images(feed, l->images, &l->count);
 	if (!l->feed_ok)
 		l->count = 0;
@@ -1240,7 +1254,7 @@ static int wait_download(const struct ui_context *ui, struct input_context *inpu
 		if (key == INPUT_RED || key == INPUT_BACK || (stop && *stop)) {
 			kill(pid, SIGTERM);
 			waitpid(pid, status, 0);
-			unlink(part);
+			unlink(part);  /* NOSONAR the image chosen from the feed or the media */
 			ui_busy(ui, 0);
 			return -1;
 		}
@@ -1253,7 +1267,7 @@ static int wait_download(const struct ui_context *ui, struct input_context *inpu
 static int has_size(const char *part, long long size)
 {
 	struct stat info;
-	int fd = open(part, O_RDONLY | O_CLOEXEC);
+	int fd = open(part, O_RDONLY | O_CLOEXEC);  /* NOSONAR the image chosen from the feed or the media */
 	int complete = fd >= 0 && fstat(fd, &info) == 0 && info.st_size == size;
 	if (fd >= 0)
 		close(fd);
@@ -1274,21 +1288,21 @@ static int fetch_image(const struct ui_context *ui, struct input_context *input,
 		return 0;
 	encode_spaces(image->link, url, sizeof(url));
 	snprintf(part, sizeof(part), "%s.part", path);
-	unlink(part);
+	unlink(part);  /* NOSONAR the image chosen from the feed or the media */
 	pid = start_download(tool, curl, part, url);
 	if (pid < 0)
 		return 0;
 	if (wait_download(ui, input, stop, image, part, pid, &status) < 0)
 		return -1;
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-		unlink(part);
+		unlink(part);  /* NOSONAR the image chosen from the feed or the media */
 		return 0;
 	}
 	if (image->size > 0 && !has_size(part, image->size)) {
-		unlink(part);
+		unlink(part);  /* NOSONAR the image chosen from the feed or the media */
 		return 0;
 	}
-	return rename(part, path) == 0;
+	return rename(part, path) == 0;  /* NOSONAR the image chosen from the feed or the media */
 }
 
 struct unzip_state {
@@ -1360,7 +1374,7 @@ static int find_in_subdirs(DIR *d, const char *dir, char *found, size_t size, in
 /* findImageFiles() of the FlashManager: the first folder without folders that holds an image. */
 static int find_image_dir(const char *dir, char *found, size_t size, int depth)
 {
-	DIR *d = opendir(dir);
+	DIR *d = opendir(dir);  /* NOSONAR the folder the chosen image is unzipped to */
 	char *names[64];
 	int count = 0;
 	int subdirs;
@@ -1387,7 +1401,7 @@ static void drop_tar_beside_ubi(const char *dir)  /* startUnzip() of the FlashMa
 	snprintf(ubi, sizeof(ubi), "%s/rootfs.ubi", dir);
 	snprintf(tar, sizeof(tar), "%s/rootfs.tar.bz2", dir);
 	if (access(ubi, F_OK) == 0)
-		unlink(tar);
+		unlink(tar);  /* NOSONAR a file of the unzipped image */
 }
 
 static int unzip_image(const struct ui_context *ui, const char *zip, const char *dir, const char *name)
@@ -1399,7 +1413,7 @@ static int unzip_image(const struct ui_context *ui, const char *zip, const char 
 	snprintf(target, sizeof(target), "%s", dir);
 	char *const unzip[] = {"unzip", "-o", source, "-d", target, NULL};
 	remove_tree(dir);  /* Only a leftover of before is removed, ofgwrite may still read the new one. */
-	if (mkdir(dir, 0755) != 0)
+	if (mkdir(dir, 0755) != 0)  /* NOSONAR the folder the chosen image is unzipped to */
 		return 0;
 	snprintf(u.body, sizeof(u.body), _("Unzipping %s"), name);
 	unzip_tick(&u);
@@ -1680,6 +1694,36 @@ static void confirm(struct ui_context *ui, struct input_context *input, const vo
 	}
 }
 
+/* The space for image on the medium: the zip when it is downloaded, and the unzipped image. */
+static long long image_need(const struct image *image)
+{
+	return (image->size > 0 ? image->size : 500 * MB) * (image->local ? 1 : 2) + 50 * MB;
+}
+
+/* 1 when image fits on media; else the message, where YELLOW frees up space and returns -1, otherwise 0. */
+static int enough_space(const struct ui_context *ui, struct input_context *input, const volatile sig_atomic_t *stop,
+	const char *media, const struct image *image)
+{
+	struct statvfs fs;
+	char text[320];
+	char keys[128];
+	long long need = image_need(image);
+	enum input_key key;
+	if (statvfs(media, &fs) != 0 || (long long)fs.f_bavail * (long long)fs.f_frsize >= need)
+		return 1;
+	snprintf(text, sizeof(text), _("There is not enough free space on %s, it needs %lld MB. YELLOW frees up space."),
+		media, need / MB);
+	ui_keys(keys, sizeof(keys), &(struct ui_key_names){.ok = _("Back"), .yellow = _("Free up space")});
+	ui_error_keys(ui, TITLE, text, keys);
+	do
+		key = input_next(input, 1000);
+	while (key != INPUT_OK && key != INPUT_BACK && key != INPUT_YELLOW && !(stop && *stop));
+	if (key != INPUT_YELLOW)
+		return 0;
+	files_free_space(ui, input, stop, media, need);
+	return -1;
+}
+
 static void prepare(struct ui_context *ui, struct input_context *input, const volatile sig_atomic_t *stop,
 	const struct target *t, const struct image *image, const char *feed, const char *media)
 {
@@ -1701,8 +1745,8 @@ static void prepare(struct ui_context *ui, struct input_context *input, const vo
 		snprintf(zip, sizeof(zip), "%s", image->link);
 	else
 		snprintf(zip, sizeof(zip), "%s/%s", folder, image->name);
-	mkdir(folder, 0755);
-	need = (image->size > 0 ? image->size : 500 * MB) * (image->local ? 1 : 2) + 50 * MB;
+	mkdir(folder, 0755);  /* NOSONAR the images folder of the medium the image is downloaded to */
+	need = image_need(image);
 	if (statvfs(media, &fs) == 0 && (long long)fs.f_bavail * (long long)fs.f_frsize < need) {
 		char text[256];
 		snprintf(text, sizeof(text), _("There is not enough free space on %s, it needs %lld MB."), media, need / MB);
@@ -1748,9 +1792,10 @@ static int start_feeds(const struct ui_context *ui, struct feed *feeds, const ch
 
 static const char *ok_label(const struct listing *l, int selected)
 {
-	if (l->rows[selected] >= 0)
+	int category = category_of(l, selected);
+	if (l->rows[selected] >= 0 || l->rows[selected] == ROW_FEED)
 		return _("Choose");
-	if (l->rows[selected] <= -2 && l->expanded[-2 - l->rows[selected]])
+	if (category >= 0 && l->expanded[category])
 		return _("Close");
 	return _("Open");
 }
@@ -1790,77 +1835,118 @@ static int pick_feed(const struct ui_context *ui, struct input_context *input, c
 	return choose_feed(ui, input, stop, feeds, *feed_count, *current);
 }
 
-void flash_image(struct ui_context *ui, struct input_context *input,
-	const volatile sig_atomic_t *stop)
-{
+/* What the list of images works with. */
+struct flash_screen {
 	struct feed feeds[MAX_FEEDS];
-	struct listing l = {0};
+	int feed_count;
+	int current;
+	struct listing l;
 	struct target t;
 	char distro[32];
 	char media[64];
+	int selected;
+};
+
+/* The images of the chosen distribution again, the first category chosen, the distribution above it. */
+static void reload(const struct ui_context *ui, struct flash_screen *s)
+{
+	load_images(ui, &s->l, &s->feeds[s->current]);
+	s->selected = s->l.row_count > 1 ? 1 : 0;
+}
+
+static void draw_listing(const struct ui_context *ui, const struct flash_screen *s)
+{
 	char footer[160];
-	int feed_count = 0;
-	int current = 0;
-	int selected = 0;
+	char body[512];
+	char header[96];
+	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = ok_label(&s->l, s->selected),
+		.yellow = _("Free up space"), .back = _("Menu")});
+	listing_body(&s->t, &s->l, s->media, body, sizeof(body));
+	snprintf(header, sizeof(header), "%s\t%s", _("Image"), _("Size"));
+	ui_menu_table(ui, &(struct ui_menu){.title = TITLE, .body = body, .header = header,
+		.items = (const char *const *)s->l.items, .count = s->l.row_count, .selected = s->selected, .marks = s->l.marks,
+		.marked = -1, .align = "lr", .footer = footer});
+}
+
+/* A key of the list: the arrows move, YELLOW frees up space, OK chooses the distribution, opens or closes a
+ * category or prepares an image. */
+static void listing_key(struct ui_context *ui, struct input_context *input, const volatile sig_atomic_t *stop,
+	struct flash_screen *s, enum input_key key)
+{
+	struct listing *l = &s->l;
+	int row = l->rows[s->selected];
+	int category = category_of(l, s->selected);
+	if (key == INPUT_UP || key == INPUT_DOWN || key == INPUT_LEFT || key == INPUT_RIGHT)
+		s->selected = move_selection(l, key, s->selected);
+	else if (key == INPUT_YELLOW) {  /* Deleted images leave the list. */
+		files_free_space(ui, input, stop, s->media, row >= 0 ? image_need(&l->images[row]) : 0);
+		reload(ui, s);
+	} else if (key != INPUT_OK)
+		return;
+	else if (row == ROW_FEED) {
+		int chosen = pick_feed(ui, input, stop, s->feeds, &s->feed_count, &s->current, s->distro);
+		if (chosen != s->current) {
+			s->current = chosen;
+			reload(ui, s);
+		}
+	} else if (category >= 0) {  /* The rows before it stay, so does the selection. */
+		l->expanded[category] ^= 1;
+		build_rows(l);
+	} else if (row >= 0) {
+		int space = enough_space(ui, input, stop, s->media, &l->images[row]);
+		if (space > 0)
+			prepare(ui, input, stop, &s->t, &l->images[row], s->feeds[s->current].name, s->media);
+		else if (space < 0)
+			reload(ui, s);
+	}
+}
+
+void flash_image(struct ui_context *ui, struct input_context *input,
+	const volatile sig_atomic_t *stop)
+{
+	struct flash_screen *s = calloc(1, sizeof(*s));
 	int generation;
+	if (!s)
+		return;
 	if (access(OFGWRITE, X_OK) != 0) {
 		message(ui, input, stop, _("ofgwrite is not installed, an image cannot be flashed."));
+		free(s);
 		return;
 	}
-	if (!find_media(media, sizeof(media))) {
+	if (!find_media(s->media, sizeof(s->media))) {
 		message(ui, input, stop, _("Neither /media/hdd nor /media/usb is mounted, the image needs one of them. "
 			"Please attach a USB stick or a hard disk."));
+		free(s);
 		return;
 	}
-	l.images = calloc(MAX_IMAGES + 1, sizeof(*l.images));
-	if (!l.images)
+	s->l.images = calloc(MAX_IMAGES + 1, sizeof(*s->l.images));
+	if (!s->l.images) {
+		free(s);
 		return;
+	}
 	ui_progress(ui, TITLE, _("Looking for the running slot."), 5, _("Please wait..."), _("Please wait..."));
-	memset(&t, 0, sizeof(t));
-	boxinfo_value("model", t.model, sizeof(t.model));
-	boxinfo_value("mtdkernel", t.mtdkernel, sizeof(t.mtdkernel));
-	boxinfo_value("mtdrootfs", t.mtdrootfs, sizeof(t.mtdrootfs));
-	find_slot(&t);
-	ofgwrite_args(&t);
-	boxinfo_value("distro", distro, sizeof(distro));
-	feed_count = start_feeds(ui, feeds, distro, &current);
-	load_images(ui, &l, &feeds[current]);
+	boxinfo_value("model", s->t.model, sizeof(s->t.model));
+	boxinfo_value("mtdkernel", s->t.mtdkernel, sizeof(s->t.mtdkernel));
+	boxinfo_value("mtdrootfs", s->t.mtdrootfs, sizeof(s->t.mtdrootfs));
+	find_slot(&s->t);
+	ofgwrite_args(&s->t);
+	boxinfo_value("distro", s->distro, sizeof(s->distro));
+	s->feed_count = start_feeds(ui, s->feeds, s->distro, &s->current);
+	reload(ui, s);
 	generation = i18n_generation();
 	while (!(stop && *stop)) {
-		char title[128];
-		char body[512];
-		char header[96];
 		enum input_key key;
 		if (generation != i18n_generation()) {  /* The rows in another language. */
 			generation = i18n_generation();
-			build_rows(&l);
+			build_rows(&s->l);
 		}
-		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = ok_label(&l, selected),
-			.yellow = _("Distribution"), .back = _("Menu")});
-		listing_body(&t, &l, media, body, sizeof(body));
-		snprintf(title, sizeof(title), "%s - %s", TITLE, feeds[current].name);
-		snprintf(header, sizeof(header), "%s\t%s", _("Image"), _("Size"));
-		ui_menu_table(ui, &(struct ui_menu){.title = title, .body = body, .header = header,
-			.items = (const char *const *)l.items, .count = l.row_count, .selected = selected, .marks = l.marks,
-			.marked = -1, .align = "lr", .footer = footer});
+		draw_listing(ui, s);
 		key = input_next(input, 1000);
-		if (key == INPUT_UP || key == INPUT_DOWN || key == INPUT_LEFT || key == INPUT_RIGHT)
-			selected = move_selection(&l, key, selected);
-		else if (key == INPUT_YELLOW) {
-			int chosen = pick_feed(ui, input, stop, feeds, &feed_count, &current, distro);
-			if (chosen != current) {
-				current = chosen;
-				load_images(ui, &l, &feeds[current]);
-				selected = 0;
-			}
-		} else if (key == INPUT_OK && l.rows[selected] <= -2) {  /* The rows before it stay, so does the selection. */
-			l.expanded[-2 - l.rows[selected]] ^= 1;
-			build_rows(&l);
-		} else if (key == INPUT_OK && l.rows[selected] >= 0) {
-			prepare(ui, input, stop, &t, &l.images[l.rows[selected]], feeds[current].name, media);
-		} else if (key == INPUT_BACK)
+		if (key == INPUT_BACK)
 			break;
+		listing_key(ui, input, stop, s, key);
 	}
-	free_rows(&l);
-	free(l.images);
+	free_rows(&s->l);
+	free(s->l.images);
+	free(s);
 }

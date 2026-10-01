@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 20:16+0000\n"
+"POT-Creation-Date: 2026-10-01 22:28+0000\n"
 "PO-Revision-Date: 2026-09-30 08:40+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: German\n"
@@ -80,12 +80,13 @@ msgstr "Datum"
 msgid "File"
 msgstr "Datei"
 
-#: src/main.c src/flash.c
+#: src/main.c src/flash.c src/files.c
 msgid "Size"
 msgstr "Größe"
 
-#: src/main.c src/reset.c src/flash.c src/backup.c src/crash.c src/console.c
-#: src/slots.c src/plugins.c src/about.c src/language.c src/viewer.c
+#: src/main.c src/reset.c src/flash.c src/backup.c src/files.c src/crash.c
+#: src/console.c src/slots.c src/plugins.c src/about.c src/language.c
+#: src/viewer.c
 msgid "Select"
 msgstr "Auswählen"
 
@@ -93,7 +94,8 @@ msgstr "Auswählen"
 msgid "Show"
 msgstr "Anzeigen"
 
-#: src/main.c src/flash.c src/plugins.c src/about.c src/language.c src/ui.c
+#: src/main.c src/flash.c src/files.c src/plugins.c src/about.c src/language.c
+#: src/ui.c
 msgid "Back"
 msgstr "Zurück"
 
@@ -292,7 +294,7 @@ msgstr "Neustart in %d s, Taste bricht ab"
 msgid "Language"
 msgstr "Sprache"
 
-#: src/main.c src/flash.c
+#: src/main.c src/flash.c src/files.c
 msgid "Open"
 msgstr "Öffnen"
 
@@ -535,6 +537,11 @@ msgstr[0] "%d Image"
 msgstr[1] "%d Images"
 
 #: src/flash.c
+#, c-format
+msgid "Distribution: %s"
+msgstr "Distribution: %s"
+
+#: src/flash.c
 msgid "No images found"
 msgstr "Keine Images gefunden"
 
@@ -543,7 +550,8 @@ msgstr "Keine Images gefunden"
 msgid "Loading the images of %s."
 msgstr "Die Images von %s werden geladen."
 
-#: src/flash.c src/backup.c src/crash.c src/slots.c src/update.c src/viewer.c
+#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/update.c
+#: src/viewer.c
 msgid "Please wait..."
 msgstr "Bitte warten..."
 
@@ -697,6 +705,19 @@ msgstr ""
 
 #: src/flash.c
 #, c-format
+msgid ""
+"There is not enough free space on %s, it needs %lld MB. YELLOW frees up "
+"space."
+msgstr ""
+"Auf %s ist nicht genug Platz frei, es werden %lld MB gebraucht. GELB schafft "
+"Platz."
+
+#: src/flash.c src/backup.c src/files.c
+msgid "Free up space"
+msgstr "Platz schaffen"
+
+#: src/flash.c
+#, c-format
 msgid "There is not enough free space on %s, it needs %lld MB."
 msgstr "Auf %s ist nicht genug Platz frei, es werden %lld MB gebraucht."
 
@@ -771,11 +792,21 @@ msgid "%s\t%lld MB"
 msgstr "%s\t%lld MB"
 
 #: src/backup.c
+msgid "Medium"
+msgstr "Medium"
+
+#: src/backup.c
+msgid "Free"
+msgstr "Frei"
+
+#: src/backup.c
 #, c-format
 msgid ""
-"There is not enough free space on any medium. The backup needs about %lld MB."
+"There is not enough free space on any medium. The backup needs about %lld "
+"MB. YELLOW frees up space on the chosen medium."
 msgstr ""
-"Auf keinem Medium ist genug Platz frei. Die Sicherung braucht etwa %lld MB."
+"Auf keinem Medium ist genug Platz frei. Die Sicherung braucht etwa %lld MB. "
+"GELB schafft Platz auf dem gewählten Medium."
 
 #: src/backup.c
 #, c-format
@@ -785,14 +816,6 @@ msgid ""
 msgstr ""
 "Sichert das laufende Image als Zip-Datei, die „Online/lokal flashen“ wieder "
 "flashen kann. Sie braucht etwa %lld MB. Wo soll sie gespeichert werden?"
-
-#: src/backup.c
-msgid "Medium"
-msgstr "Medium"
-
-#: src/backup.c
-msgid "Free"
-msgstr "Frei"
 
 #: src/backup.c
 msgid "Back up"
@@ -832,6 +855,70 @@ msgstr "Die Sicherung wurde abgebrochen."
 #: src/backup.c
 msgid "The backup failed."
 msgstr "Die Sicherung ist fehlgeschlagen."
+
+#: src/files.c
+msgid "Measuring the folders and files."
+msgstr "Ordner und Dateien werden gemessen."
+
+#: src/files.c
+msgid "This folder is empty."
+msgstr "Dieser Ordner ist leer."
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s, needed %s. That is enough now."
+msgstr ""
+"%s\n"
+"Frei %s, benötigt %s. Das reicht jetzt."
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s, needed %s."
+msgstr ""
+"%s\n"
+"Frei %s, benötigt %s."
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s."
+msgstr ""
+"%s\n"
+"Frei %s."
+
+#: src/files.c src/plugins.c
+msgid "Name"
+msgstr "Name"
+
+#: src/files.c
+msgid "Delete"
+msgstr "Löschen"
+
+#: src/files.c
+#, c-format
+msgid "Delete the folder %s with everything in it (%s)? This cannot be undone."
+msgstr ""
+"Den Ordner %s mit allem darin löschen (%s)? Das lässt sich nicht rückgängig "
+"machen."
+
+#: src/files.c
+#, c-format
+msgid "Delete %s (%s)? This cannot be undone."
+msgstr "%s löschen (%s)? Das lässt sich nicht rückgängig machen."
+
+#: src/files.c
+msgid "Deleting..."
+msgstr "Wird gelöscht..."
+
+#: src/files.c
+#, c-format
+msgid "%s cannot be deleted completely: %s"
+msgstr "%s kann nicht vollständig gelöscht werden: %s"
 
 #: src/crash.c
 msgid "Crash report"
@@ -1064,10 +1151,6 @@ msgstr ""
 "aktiviert."
 
 #: src/plugins.c
-msgid "Name"
-msgstr "Name"
-
-#: src/plugins.c
 msgid "Type"
 msgstr "Typ"
 
@@ -1246,13 +1329,13 @@ msgid "the icons"
 msgstr "die Icons"
 
 #: plugin/plugin.py
+msgid "Recovery Manager"
+msgstr "Recovery Manager"
+
+#: plugin/plugin.py
 msgid "Enigma2 stops and the Open Recovery Manager starts instead. Continue?"
 msgstr ""
 "Enigma2 wird beendet und der Open Recovery Manager gestartet. Fortfahren?"
-
-#: plugin/plugin.py
-msgid "Recovery Manager"
-msgstr "Recovery Manager"
 
 #: plugin/plugin.py
 msgid "Restarts Enigma2 into the Open Recovery Manager."

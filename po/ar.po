@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 20:16+0000\n"
+"POT-Creation-Date: 2026-10-01 22:28+0000\n"
 "PO-Revision-Date: 2026-09-30 09:30+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: Arabic\n"
@@ -81,12 +81,13 @@ msgstr "التاريخ"
 msgid "File"
 msgstr "الملف"
 
-#: src/main.c src/flash.c
+#: src/main.c src/flash.c src/files.c
 msgid "Size"
 msgstr "الحجم"
 
-#: src/main.c src/reset.c src/flash.c src/backup.c src/crash.c src/console.c
-#: src/slots.c src/plugins.c src/about.c src/language.c src/viewer.c
+#: src/main.c src/reset.c src/flash.c src/backup.c src/files.c src/crash.c
+#: src/console.c src/slots.c src/plugins.c src/about.c src/language.c
+#: src/viewer.c
 msgid "Select"
 msgstr "تحديد"
 
@@ -94,7 +95,8 @@ msgstr "تحديد"
 msgid "Show"
 msgstr "عرض"
 
-#: src/main.c src/flash.c src/plugins.c src/about.c src/language.c src/ui.c
+#: src/main.c src/flash.c src/files.c src/plugins.c src/about.c src/language.c
+#: src/ui.c
 msgid "Back"
 msgstr "رجوع"
 
@@ -293,7 +295,7 @@ msgstr "إعادة التشغيل خلال %d ث، أي زر يلغيها"
 msgid "Language"
 msgstr "اللغة"
 
-#: src/main.c src/flash.c
+#: src/main.c src/flash.c src/files.c
 msgid "Open"
 msgstr "فتح"
 
@@ -530,6 +532,11 @@ msgstr[4] "%d صورةً"
 msgstr[5] "%d صورة"
 
 #: src/flash.c
+#, c-format
+msgid "Distribution: %s"
+msgstr "التوزيعة: %s"
+
+#: src/flash.c
 msgid "No images found"
 msgstr "لم يتم العثور على صور"
 
@@ -538,7 +545,8 @@ msgstr "لم يتم العثور على صور"
 msgid "Loading the images of %s."
 msgstr "جارٍ تحميل صور %s."
 
-#: src/flash.c src/backup.c src/crash.c src/slots.c src/update.c src/viewer.c
+#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/update.c
+#: src/viewer.c
 msgid "Please wait..."
 msgstr "يرجى الانتظار..."
 
@@ -690,6 +698,17 @@ msgstr "الفحص يختبر الصورة فقط ولا يكتب شيئًا. ب
 
 #: src/flash.c
 #, c-format
+msgid ""
+"There is not enough free space on %s, it needs %lld MB. YELLOW frees up "
+"space."
+msgstr "لا توجد مساحة حرة كافية على %s، يلزم %lld ميغابايت. يوفّر YELLOW مساحة."
+
+#: src/flash.c src/backup.c src/files.c
+msgid "Free up space"
+msgstr "توفير مساحة"
+
+#: src/flash.c
+#, c-format
 msgid "There is not enough free space on %s, it needs %lld MB."
 msgstr "لا توجد مساحة فارغة كافية على %s، المطلوب %lld MB."
 
@@ -759,12 +778,21 @@ msgid "%s\t%lld MB"
 msgstr "%s\t%lld MB"
 
 #: src/backup.c
+msgid "Medium"
+msgstr "الوسيط"
+
+#: src/backup.c
+msgid "Free"
+msgstr "متاح"
+
+#: src/backup.c
 #, c-format
 msgid ""
-"There is not enough free space on any medium. The backup needs about %lld MB."
+"There is not enough free space on any medium. The backup needs about %lld "
+"MB. YELLOW frees up space on the chosen medium."
 msgstr ""
-"لا توجد مساحة فارغة كافية على أي وسيط تخزين. تحتاج النسخة الاحتياطية إلى نحو "
-"%lld MB."
+"لا توجد مساحة حرة كافية على أي وسيط. تحتاج النسخة الاحتياطية إلى حوالي %lld "
+"ميغابايت. يوفّر YELLOW مساحة على الوسيط المحدد."
 
 #: src/backup.c
 #, c-format
@@ -774,14 +802,6 @@ msgid ""
 msgstr ""
 "يحفظ الصورة الحالية كملف zip يمكن تثبيته مجددًا عبر «تثبيت صورة عبر الإنترنت/"
 "محليًا». يحتاج إلى نحو %lld MB. أين تريد حفظه؟"
-
-#: src/backup.c
-msgid "Medium"
-msgstr "الوسيط"
-
-#: src/backup.c
-msgid "Free"
-msgstr "متاح"
 
 #: src/backup.c
 msgid "Back up"
@@ -820,6 +840,68 @@ msgstr "تم إلغاء النسخ الاحتياطي."
 #: src/backup.c
 msgid "The backup failed."
 msgstr "فشل النسخ الاحتياطي."
+
+#: src/files.c
+msgid "Measuring the folders and files."
+msgstr "جارٍ قياس المجلدات والملفات."
+
+#: src/files.c
+msgid "This folder is empty."
+msgstr "هذا المجلد فارغ."
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s, needed %s. That is enough now."
+msgstr ""
+"%s\n"
+"المساحة الحرة %s، المطلوب %s. هذا كافٍ الآن."
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s, needed %s."
+msgstr ""
+"%s\n"
+"المساحة الحرة %s، المطلوب %s."
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s."
+msgstr ""
+"%s\n"
+"المساحة الحرة %s."
+
+#: src/files.c src/plugins.c
+msgid "Name"
+msgstr "الاسم"
+
+#: src/files.c
+msgid "Delete"
+msgstr "حذف"
+
+#: src/files.c
+#, c-format
+msgid "Delete the folder %s with everything in it (%s)? This cannot be undone."
+msgstr "حذف المجلد %s بكل محتوياته (%s)؟ لا يمكن التراجع عن ذلك."
+
+#: src/files.c
+#, c-format
+msgid "Delete %s (%s)? This cannot be undone."
+msgstr "حذف %s (%s)؟ لا يمكن التراجع عن ذلك."
+
+#: src/files.c
+msgid "Deleting..."
+msgstr "جارٍ الحذف..."
+
+#: src/files.c
+#, c-format
+msgid "%s cannot be deleted completely: %s"
+msgstr "تعذر حذف %s بالكامل: %s"
 
 #: src/crash.c
 msgid "Crash report"
@@ -1058,10 +1140,6 @@ msgid ""
 msgstr "تُفعَّل الإضافات المعطلة مؤقتًا مجددًا عند إعادة تشغيل جهاز الاستقبال."
 
 #: src/plugins.c
-msgid "Name"
-msgstr "الاسم"
-
-#: src/plugins.c
 msgid "Type"
 msgstr "النوع"
 
@@ -1247,12 +1325,12 @@ msgid "the icons"
 msgstr "الأيقونات"
 
 #: plugin/plugin.py
-msgid "Enigma2 stops and the Open Recovery Manager starts instead. Continue?"
-msgstr "سيتم إيقاف Enigma2 وتشغيل Open Recovery Manager. هل تريد المتابعة؟"
-
-#: plugin/plugin.py
 msgid "Recovery Manager"
 msgstr "Recovery Manager"
+
+#: plugin/plugin.py
+msgid "Enigma2 stops and the Open Recovery Manager starts instead. Continue?"
+msgstr "سيتم إيقاف Enigma2 وتشغيل Open Recovery Manager. هل تريد المتابعة؟"
 
 #: plugin/plugin.py
 msgid "Restarts Enigma2 into the Open Recovery Manager."

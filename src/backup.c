@@ -3,6 +3,7 @@
 #include "backup.h"
 
 #include "boxinfo.h"
+#include "files.h"
 #include "flash.h"
 #include "i18n.h"
 #include "process.h"
@@ -175,18 +176,19 @@ static long long root_size(void)
 	return atoll(output) * 1024;
 }
 
-/* Media for the backup like keyStart() of ImageBackup.py, only mounted ones: a folder of /media on the
- * flash would fill the flash itself. */
+/* Media for the backup like keyStart() of ImageBackup.py, only mounted ones: on another device than the folder
+ * above, so neither a folder of /media on the flash nor an empty mount point in the tmpfs of /media. */
 static int find_media(struct medium *media)
 {
 	static const char *const bases[] = {"/media", "/media/net"};
-	struct stat root;
 	int count = 0;
-	if (stat("/", &root) != 0)
-		return 0;
 	for (size_t b = 0; b < 2; ++b) {
-		DIR *d = opendir(bases[b]);
 		struct dirent *entry;
+		struct stat root;
+		DIR *d;
+		if (stat(bases[b], &root) != 0)
+			continue;
+		d = opendir(bases[b]);
 		if (!d)
 			continue;
 		while ((entry = readdir(d)) && count < MAX_MEDIA) {
@@ -474,47 +476,55 @@ static int write_script(const struct plan *p, const char *media)
 	return fclose(f) == 0;
 }
 
+/* The rows and marks of the media, grey for too small; the first one with enough space, else -1. */
+static int media_rows(struct medium *media, int count, long long need, char (*rows)[320], const char **items, char *marks)
+{
+	int fits = -1;
+	for (int i = 0; i < count; ++i) {
+		struct statvfs fs;
+		if (statvfs(media[i].path, &fs) == 0)
+			media[i].free = (long long)fs.f_bavail * (long long)fs.f_frsize;
+		snprintf(rows[i], sizeof(rows[i]), _("%s\t%lld MB"), media[i].path, media[i].free / MB);
+		items[i] = rows[i];
+		marks[i] = media[i].free < need ? 2 : 0;  /* Grey: too small. */
+		if (fits < 0 && !marks[i])
+			fits = i;
+	}
+	return fits;
+}
+
+/* Grey media can be chosen too, YELLOW frees up space on them. */
 static int choose_medium(const struct ui_context *ui, struct input_context *input, const volatile sig_atomic_t *stop,
 	struct medium *media, int count, long long need)
 {
 	char rows[MAX_MEDIA][320];
 	const char *items[MAX_MEDIA];
-	char marks[MAX_MEDIA];
+	char marks[MAX_MEDIA] = {0};
 	char body[512];
 	char header[96];
-	char footer[128];
-	int selected = -1;
-	for (int i = 0; i < count; ++i) {
-		snprintf(rows[i], sizeof(rows[i]), _("%s\t%lld MB"), media[i].path, media[i].free / MB);
-		items[i] = rows[i];
-		marks[i] = media[i].free < need ? 2 : 0;  /* Grey: too small. */
-		if (selected < 0 && !marks[i])
-			selected = i;
-	}
-	if (selected < 0) {
-		snprintf(body, sizeof(body), _("There is not enough free space on any medium. The backup needs about %lld MB."),
-			need / MB);
-		message(ui, input, stop, body);
-		return -1;
-	}
-	snprintf(body, sizeof(body), _("Saves the running image as a zip file, which Flash online/local can flash again. "
-		"It needs about %lld MB. Where should it be saved?"), need / MB);
+	char footer[160];
+	int selected = media_rows(media, count, need, rows, items, marks);
+	if (selected < 0)
+		selected = 0;
 	snprintf(header, sizeof(header), "%s\t%s", _("Medium"), _("Free"));
 	while (!(stop && *stop)) {
 		enum input_key key;
-		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Back up"),
-			.back = _("Menu")});
+		if (media_rows(media, count, need, rows, items, marks) < 0)
+			snprintf(body, sizeof(body), _("There is not enough free space on any medium. The backup needs about "
+				"%lld MB. YELLOW frees up space on the chosen medium."), need / MB);
+		else
+			snprintf(body, sizeof(body), _("Saves the running image as a zip file, which Flash online/local can flash "
+				"again. It needs about %lld MB. Where should it be saved?"), need / MB);
+		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"),
+			.ok = marks[selected] ? NULL : _("Back up"), .yellow = _("Free up space"), .back = _("Menu")});
 		ui_menu_table(ui, &(struct ui_menu){.title = TITLE, .body = body, .header = header, .items = items,
 			.count = count, .selected = selected, .marks = marks, .marked = -1, .align = "lr", .footer = footer});
 		key = input_next(input, 1000);
-		if (key == INPUT_UP || key == INPUT_DOWN) {
-			int next = selected;
-			do
-				next = (next + (key == INPUT_UP ? count - 1 : 1)) % count;
-			while (marks[next] == 2 && next != selected);
-			selected = next;
-		} else if (key == INPUT_OK)
+		selected = list_move(key, selected, count);
+		if (key == INPUT_OK && !marks[selected])
 			return selected;
+		if (key == INPUT_YELLOW)
+			files_free_space(ui, input, stop, media[selected].path, need);
 		else if (key == INPUT_BACK)
 			return -1;
 	}

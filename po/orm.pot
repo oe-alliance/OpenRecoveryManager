@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 22:25+0000\n"
+"POT-Creation-Date: 2026-10-01 22:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -82,12 +82,13 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: src/main.c src/flash.c
+#: src/main.c src/flash.c src/files.c
 msgid "Size"
 msgstr ""
 
-#: src/main.c src/reset.c src/flash.c src/backup.c src/crash.c src/console.c
-#: src/slots.c src/plugins.c src/about.c src/language.c src/viewer.c
+#: src/main.c src/reset.c src/flash.c src/backup.c src/files.c src/crash.c
+#: src/console.c src/slots.c src/plugins.c src/about.c src/language.c
+#: src/viewer.c
 msgid "Select"
 msgstr ""
 
@@ -95,7 +96,8 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
-#: src/main.c src/flash.c src/plugins.c src/about.c src/language.c src/ui.c
+#: src/main.c src/flash.c src/files.c src/plugins.c src/about.c src/language.c
+#: src/ui.c
 msgid "Back"
 msgstr ""
 
@@ -274,7 +276,7 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: src/main.c src/flash.c
+#: src/main.c src/flash.c src/files.c
 msgid "Open"
 msgstr ""
 
@@ -487,6 +489,11 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/flash.c
+#, c-format
+msgid "Distribution: %s"
+msgstr ""
+
+#: src/flash.c
 msgid "No images found"
 msgstr ""
 
@@ -495,7 +502,8 @@ msgstr ""
 msgid "Loading the images of %s."
 msgstr ""
 
-#: src/flash.c src/backup.c src/crash.c src/slots.c src/update.c src/viewer.c
+#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/update.c
+#: src/viewer.c
 msgid "Please wait..."
 msgstr ""
 
@@ -643,6 +651,17 @@ msgstr ""
 
 #: src/flash.c
 #, c-format
+msgid ""
+"There is not enough free space on %s, it needs %lld MB. YELLOW frees up "
+"space."
+msgstr ""
+
+#: src/flash.c src/backup.c src/files.c
+msgid "Free up space"
+msgstr ""
+
+#: src/flash.c
+#, c-format
 msgid "There is not enough free space on %s, it needs %lld MB."
 msgstr ""
 
@@ -710,9 +729,18 @@ msgid "%s\t%lld MB"
 msgstr ""
 
 #: src/backup.c
+msgid "Medium"
+msgstr ""
+
+#: src/backup.c
+msgid "Free"
+msgstr ""
+
+#: src/backup.c
 #, c-format
 msgid ""
-"There is not enough free space on any medium. The backup needs about %lld MB."
+"There is not enough free space on any medium. The backup needs about %lld "
+"MB. YELLOW frees up space on the chosen medium."
 msgstr ""
 
 #: src/backup.c
@@ -720,14 +748,6 @@ msgstr ""
 msgid ""
 "Saves the running image as a zip file, which Flash online/local can flash "
 "again. It needs about %lld MB. Where should it be saved?"
-msgstr ""
-
-#: src/backup.c
-msgid "Medium"
-msgstr ""
-
-#: src/backup.c
-msgid "Free"
 msgstr ""
 
 #: src/backup.c
@@ -765,6 +785,62 @@ msgstr ""
 
 #: src/backup.c
 msgid "The backup failed."
+msgstr ""
+
+#: src/files.c
+msgid "Measuring the folders and files."
+msgstr ""
+
+#: src/files.c
+msgid "This folder is empty."
+msgstr ""
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s, needed %s. That is enough now."
+msgstr ""
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s, needed %s."
+msgstr ""
+
+#: src/files.c
+#, c-format
+msgid ""
+"%s\n"
+"Free %s."
+msgstr ""
+
+#: src/files.c src/plugins.c
+msgid "Name"
+msgstr ""
+
+#: src/files.c
+msgid "Delete"
+msgstr ""
+
+#: src/files.c
+#, c-format
+msgid "Delete the folder %s with everything in it (%s)? This cannot be undone."
+msgstr ""
+
+#: src/files.c
+#, c-format
+msgid "Delete %s (%s)? This cannot be undone."
+msgstr ""
+
+#: src/files.c
+msgid "Deleting..."
+msgstr ""
+
+#: src/files.c
+#, c-format
+msgid "%s cannot be deleted completely: %s"
 msgstr ""
 
 #: src/crash.c
@@ -978,10 +1054,6 @@ msgstr ""
 #: src/plugins.c
 msgid ""
 "Plugins disabled temporarily are enabled again when the receiver restarts."
-msgstr ""
-
-#: src/plugins.c
-msgid "Name"
 msgstr ""
 
 #: src/plugins.c

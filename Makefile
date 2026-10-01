@@ -20,6 +20,7 @@ SOURCES := \
 	src/reset.c \
 	src/flash.c \
 	src/backup.c \
+	src/files.c \
 	src/boxinfo.c \
 	src/crash.c \
 	src/console.c \

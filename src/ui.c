@@ -1194,17 +1194,23 @@ void ui_progress(const struct ui_context *ui, const char *title, const char *bod
 	render();
 }
 
-void ui_error(const struct ui_context *ui, const char *title, const char *message)
+void ui_error_keys(const struct ui_context *ui, const char *title, const char *message, const char *footer_keys)
 {
 	(void)ui;
-	if (display && !same_frame(hash_text(hash_text(hash_int(14695981039346656037ULL, 4), title), message))) {
-		char footer_keys[64];
+	if (display && !same_frame(hash_text(hash_text(hash_text(hash_int(14695981039346656037ULL, 4), title), message),
+		footer_keys))) {
 		lv_obj_t *root = page(title ? title : _("Error"));
 		card(root, _("ERROR"), message ? message : "", CARD_ERROR, 0);
-		snprintf(footer_keys, sizeof(footer_keys), "OK: %s", _("Back"));
 		footer_set(footer_keys);
 	}
 	render();
+}
+
+void ui_error(const struct ui_context *ui, const char *title, const char *message)
+{
+	char footer_keys[64];
+	snprintf(footer_keys, sizeof(footer_keys), "OK: %s", _("Back"));
+	ui_error_keys(ui, title, message, footer_keys);
 }
 
 /* The lines of ui_text in a sunken view, returns the rows that fit. */
