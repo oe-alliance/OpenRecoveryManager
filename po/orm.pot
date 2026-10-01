@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 09:17+0000\n"
+"POT-Creation-Date: 2026-10-01 15:18+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -212,8 +212,9 @@ msgstr ""
 
 #: src/main.c
 msgid ""
-"Moves a plugin to Plugins.disabled, so Enigma2 neither loads nor removes it, "
-"and back again. The plugin of the last start step is chosen at first."
+"Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables "
+"it again. A plugin that caused problems at the last start is marked and "
+"chosen at first."
 msgstr ""
 
 #: src/main.c
@@ -888,19 +889,8 @@ msgid "System plugin"
 msgstr ""
 
 #: src/plugins.c
-msgid "Screen"
-msgstr ""
-
-#: src/plugins.c
-msgid "Tool"
-msgstr ""
-
-#: src/plugins.c
-msgid "Converter"
-msgstr ""
-
-#: src/plugins.c
-msgid "Renderer"
+#, c-format
+msgid "%s cannot be written: %s"
 msgstr ""
 
 #: src/plugins.c
@@ -950,23 +940,21 @@ msgstr ""
 
 #: src/plugins.c
 #, c-format
-msgid "No file of %s was found."
-msgstr ""
-
-#: src/plugins.c
-#, c-format
-msgid "the skin %s"
-msgstr ""
-
-#: src/plugins.c
-#, c-format
 msgid " and %d more"
 msgid_plural " and %d more"
 msgstr[0] ""
 msgstr[1] ""
 
 #: src/plugins.c
+msgid "Disable permanently"
+msgstr ""
+
+#: src/plugins.c
 msgid "Enable"
+msgstr ""
+
+#: src/plugins.c
+msgid "Disable temporarily"
 msgstr ""
 
 #: src/plugins.c
@@ -988,6 +976,11 @@ msgid "Changes take effect when Enigma2 starts again."
 msgstr ""
 
 #: src/plugins.c
+msgid ""
+"Plugins disabled temporarily are enabled again when the receiver restarts."
+msgstr ""
+
+#: src/plugins.c
 msgid "Name"
 msgstr ""
 
@@ -997,6 +990,11 @@ msgstr ""
 
 #: src/plugins.c
 msgid "Problem"
+msgstr ""
+
+#: src/plugins.c
+#, c-format
+msgid "%s (temporarily)"
 msgstr ""
 
 #: src/plugins.c

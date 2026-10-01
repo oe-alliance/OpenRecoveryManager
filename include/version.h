@@ -2,16 +2,15 @@
 #define RECOVERY_VERSION_H
 
 #ifndef ORM_VERSION
-#define ORM_VERSION "1.1"  /* A push of a new version to master tags and releases it as v<version>. */
+#define ORM_VERSION "1.2"
 #endif
 
 #ifndef ORM_REVISION
-#define ORM_REVISION ""  /* The git commit, set by the Makefile. */
+#define ORM_REVISION ""
 #endif
 
 #include <stdio.h>
 
-/* "1.0 (8f917e5)", only "1.0" without the commit. */
 static inline const char *orm_version(void)
 {
 	static char text[64];

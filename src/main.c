@@ -358,8 +358,8 @@ static void preview(const struct ui_context *ui, int item, const struct watch_re
 		N_("Starts Enigma2 again. If a plugin keeps it from starting, disable the plugin first."),
 		N_("Shows the newest crash log of Enigma2. BLUE shows the steps of the last start."),
 		NULL,  /* With the distribution, see below. */
-		N_("Moves a plugin to Plugins.disabled, so Enigma2 neither loads nor removes it, and back again. The plugin "
-			"of the last start step is chosen at first."),
+		N_("Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables it again. A plugin that "
+			"caused problems at the last start is marked and chosen at first."),
 		N_("Installs the latest updates for your receiver. You see the list and confirm before anything is "
 			"installed."),
 		N_("Resets Enigma2 to the state of a new installation. Your old settings are moved aside, so nothing is "

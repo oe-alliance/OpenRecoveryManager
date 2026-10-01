@@ -19,37 +19,40 @@
 
 #define TITLE _("Disable plugins")
 #define PYTHON "/usr/lib/enigma2/python"
-#define ENIGMA2_FILES "/var/lib/opkg/info/enigma2.list"  /* The own files of enigma2 are no add-ons. */
 #define MAX_ITEMS 512
+#define BLACKLIST "/etc/enigma2/plugin_blacklist"
+#define BLACKLIST_TEMPORARY "/tmp/plugin_blacklist"
 
-/* Plugins are folders, the other kinds single modules that plugins or skins install. */
+enum state {
+	ENABLED,
+	MOVED,  /* In Plugins.disabled. */
+	TEMPORARY,  /* In BLACKLIST_TEMPORARY. */
+	BLACKLISTED  /* In BLACKLIST. */
+};
+
+/* Only plugins: a broken screen, tool, converter or renderer of enigma2 is not fixed by disabling it. */
 struct kind {
 	const char *folder;  /* Below PYTHON. */
 	const char *disabled;  /* Below DISABLED_ROOT. */
 	const char *type;  /* Translated where it is shown. */
-	int files;
 };
 
 static const struct kind kinds[] = {
-	{"Plugins/Extensions", "Extensions", N_("Plugin"), 0},
-	{"Plugins/SystemPlugins", "SystemPlugins", N_("System plugin"), 0},
-	{"Screens", "Screens", N_("Screen"), 1},
-	{"Tools", "Tools", N_("Tool"), 1},
-	{"Components/Converter", "Components/Converter", N_("Converter"), 1},
-	{"Components/Renderer", "Components/Renderer", N_("Renderer"), 1},
+	{"Plugins/Extensions", "Extensions", N_("Plugin")},
+	{"Plugins/SystemPlugins", "SystemPlugins", N_("System plugin")},
 };
 
 struct item {
 	int kind;
 	char name[64];
-	int disabled;
+	enum state state;
 	char problem[160];
 };
 
 struct list {
 	struct item items[MAX_ITEMS];
 	int count;
-	char *enigma2_files;  /* "\n" + the lines of enigma2.list, for strstr. */
+	int blacklist;  /* Enigma2 knows the blacklists. */
 };
 
 static int is_directory(const char *path)
@@ -58,51 +61,138 @@ static int is_directory(const char *path)
 	return lstat(path, &info) == 0 && S_ISDIR(info.st_mode);
 }
 
-static char *read_file(const char *path, const char *prefix)
+/* The whole file, NULL when it cannot be read or is empty or larger than 16 MB. */
+static char *read_data(const char *path, size_t *size)
 {
-	FILE *file = fopen(path, "r");
-	size_t length = strlen(prefix);
-	size_t size = length + 1;
-	char *text = malloc(size);
-	char chunk[4096];
-	size_t read_bytes;
-	if (!text) {
-		if (file)
-			fclose(file);
-		return NULL;
-	}
-	memcpy(text, prefix, length + 1);
+	FILE *file = fopen(path, "rb");  /* NOSONAR a file of enigma2 or of an installed plugin */
+	struct stat info;
+	char *data = NULL;
+	*size = 0;
 	if (!file)
-		return text;
-	while ((read_bytes = fread(chunk, 1, sizeof(chunk), file)) > 0) {
-		char *bigger = realloc(text, size + read_bytes);
-		if (!bigger)
-			break;
-		text = bigger;
-		memcpy(text + size - 1, chunk, read_bytes);
-		size += read_bytes;
-		text[size - 1] = '\0';
+		return NULL;
+	if (fstat(fileno(file), &info) == 0 && info.st_size > 0 && info.st_size <= 16 * 1024 * 1024)
+		data = malloc((size_t)info.st_size);
+	if (data && fread(data, 1, (size_t)info.st_size, file) == (size_t)info.st_size)
+		*size = (size_t)info.st_size;
+	else {
+		free(data);
+		data = NULL;
 	}
 	fclose(file);
-	return text;
+	return data;
 }
 
-/* A line of the list is the path, a tab and the mode. */
-static int of_enigma2(const struct list *l, const char *folder, const char *file)
+static int file_has(const char *path, const char *text)
 {
-	char line[256];
-	const char *found;
-	size_t length;
-	if (!l->enigma2_files)
+	size_t size;
+	char *data = read_data(path, &size);
+	int found = data && memmem(data, size, text, strlen(text));
+	free(data);
+	return found;
+}
+
+/* Enigma2 reads the blacklists: its Tools/Directories has their file name, also as .pyc. */
+static int blacklist_supported(void)
+{
+	DIR *dir;
+	const struct dirent *entry;
+	int found = 0;
+	if (file_has(PYTHON "/Tools/Directories.pyc", "plugin_blacklist"))
+		return 1;
+	if (file_has(PYTHON "/Tools/Directories.py", "plugin_blacklist"))
+		return 1;
+	dir = opendir(PYTHON "/Tools/__pycache__");
+	if (!dir)
 		return 0;
-	length = (size_t)snprintf(line, sizeof(line), "\n" PYTHON "/%.40s/%.120s", folder, file);
-	found = strstr(l->enigma2_files, line);
-	while (found) {
-		if (found[length] == '\t' || found[length] == '\n' || !found[length])
-			return 1;
-		found = strstr(found + length, line);
+	while (!found) {
+		char path[320];
+		entry = readdir(dir);
+		if (!entry)
+			break;
+		if (strncmp(entry->d_name, "Directories.", 12))
+			continue;
+		snprintf(path, sizeof(path), PYTHON "/Tools/__pycache__/%.200s", entry->d_name);
+		found = file_has(path, "plugin_blacklist");
 	}
+	closedir(dir);
+	return found;
+}
+
+/* The name in line without the white space around it, like enigma2 reads it; plugin names have none
+ * inside. 0 for an empty line. */
+static int entry_name(const char *line, char *name)
+{
+	return sscanf(line, "%255s", name) == 1;
+}
+
+static int in_blacklist(const char *path, const char *name)
+{
+	FILE *file = fopen(path, "r");
+	char line[256];
+	char entry[256];
+	int found = 0;
+	if (!file)
+		return 0;
+	while (!found && fgets(line, sizeof(line), file))
+		if (entry_name(line, entry))
+			found = !strcmp(entry, name);
+	fclose(file);
+	return found;
+}
+
+/* Adds name to the blacklist path or removes it; the file is removed when it gets empty. */
+static int blacklist_set(const char *path, const char *name, int add, char *error, size_t size)
+{
+	char temporary[64];
+	char line[256];
+	char entry[256];
+	FILE *in = fopen(path, "r");
+	FILE *out;
+	int lines = 0;
+	snprintf(temporary, sizeof(temporary), "%s.new", path);
+	if (!(out = fopen(temporary, "w"))) {
+		snprintf(error, size, _("%s cannot be written: %s"), path, strerror(errno));
+		if (in)
+			fclose(in);
+		return 0;
+	}
+	while (in && fgets(line, sizeof(line), in)) {
+		if (entry_name(line, entry) && strcmp(entry, name)) {
+			fprintf(out, "%s\n", entry);
+			lines++;
+		}
+	}
+	if (in)
+		fclose(in);
+	if (add) {
+		fprintf(out, "%s\n", name);
+		lines++;
+	}
+	if (fclose(out) == 0) {
+		if (lines && rename(temporary, path) == 0)
+			return 1;
+		if (!lines && (unlink(path) == 0 || errno == ENOENT)) {
+			unlink(temporary);
+			return 1;
+		}
+	}
+	snprintf(error, size, _("%s cannot be written: %s"), path, strerror(errno));
+	unlink(temporary);
 	return 0;
+}
+
+/* The plugins in the blacklists; enigma2 matches the folder name only, not the type. */
+static void apply_blacklists(struct list *l)
+{
+	for (int i = 0; i < l->count; ++i) {
+		struct item *item = &l->items[i];
+		if (item->state != ENABLED)
+			continue;
+		if (in_blacklist(BLACKLIST, item->name))
+			item->state = BLACKLISTED;
+		else if (in_blacklist(BLACKLIST_TEMPORARY, item->name))
+			item->state = TEMPORARY;
+	}
 }
 
 static int find(const struct list *l, int kind, const char *name)
@@ -119,7 +209,7 @@ static void add(struct list *l, int kind, const char *name, int disabled)
 		return;
 	l->items[l->count].kind = kind;
 	snprintf(l->items[l->count].name, sizeof(l->items[0].name), "%.63s", name);
-	l->items[l->count].disabled = disabled;
+	l->items[l->count].state = disabled ? MOVED : ENABLED;
 	l->items[l->count].problem[0] = '\0';
 	l->count++;
 }
@@ -139,26 +229,11 @@ static void scan(struct list *l, int kind, int disabled)
 		return;
 	while ((entry = readdir(dir))) {
 		char path[256];
-		char name[64];
-		size_t length = strlen(entry->d_name);
-		if (entry->d_name[0] == '.' || !strcmp(entry->d_name, "__pycache__") || length >= sizeof(name) + 4)
+		if (entry->d_name[0] == '.' || !strcmp(entry->d_name, "__pycache__") || strlen(entry->d_name) >= 64)
 			continue;
 		snprintf(path, sizeof(path), "%s/%.63s", folder, entry->d_name);
-		if (!k->files) {
-			if (is_directory(path))
-				add(l, kind, entry->d_name, disabled);
-			continue;
-		}
-		if (length > 4 && !strcmp(entry->d_name + length - 4, ".pyc"))
-			length -= 4;
-		else if (length > 3 && !strcmp(entry->d_name + length - 3, ".py"))
-			length -= 3;
-		else
-			continue;
-		snprintf(name, sizeof(name), "%.*s", (int)length, entry->d_name);
-		if (!strcmp(name, "__init__") || (!disabled && of_enigma2(l, k->folder, entry->d_name)))
-			continue;
-		add(l, kind, name, disabled);
+		if (is_directory(path))
+			add(l, kind, entry->d_name, disabled);
 	}
 	closedir(dir);
 }
@@ -189,7 +264,7 @@ static void start_problem(struct list *l)
 	set_problem(l, -1, result.step + 7, text);
 }
 
-/* "No module named 'Tools.Weatherinfo'" of a module that is disabled here, -1 when not. */
+/* "No module named 'Plugins.Extensions.Foo'" of a plugin that is disabled here, -1 when not. */
 static int missing_disabled(const struct list *l, const char *error)
 {
 	char module[128];
@@ -209,7 +284,7 @@ static int missing_disabled(const struct list *l, const char *error)
 			continue;
 		snprintf(name, sizeof(name), "%.*s", (int)strcspn(module + length + 1, "/"), module + length + 1);
 		i = find(l, (int)k, name);
-		if (i >= 0 && l->items[i].disabled)
+		if (i >= 0 && l->items[i].state == MOVED)
 			return i;
 	}
 	return -1;
@@ -235,7 +310,7 @@ static void set_plugin_problem(struct list *l, const char *folder, const char *n
 {
 	for (size_t k = 0; k < sizeof(kinds) / sizeof(kinds[0]); ++k) {
 		char by[96];
-		if (kinds[k].files || strcmp(kinds[k].disabled, folder))
+		if (strcmp(kinds[k].disabled, folder))
 			continue;
 		set_problem(l, (int)k, name, problem);
 		snprintf(by, sizeof(by), _("Needed by %.63s"), name);
@@ -283,7 +358,7 @@ static void debug_log_problems(struct list *l)
 	fclose(file);
 }
 
-/* Python files of add-ons in the traceback of the newest crash log. */
+/* Python files of plugins in the traceback of the newest crash log. */
 static void crash_log_problems(struct list *l)
 {
 	char path[512];
@@ -304,8 +379,7 @@ static void crash_log_problems(struct list *l)
 			char name[64];
 			if (strncmp(start, kinds[k].folder, length) || start[length] != '/')
 				continue;
-			snprintf(name, sizeof(name), "%.*s", (int)strcspn(start + length + 1, kinds[k].files ? "./\"" : "/\""),
-				start + length + 1);
+			snprintf(name, sizeof(name), "%.*s", (int)strcspn(start + length + 1, "/\""), start + length + 1);
 			set_problem(l, (int)k, name, _("In the traceback of the crash"));
 		}
 	}
@@ -351,45 +425,26 @@ static void make_folders(const char *path)  /* mkdir -p */
 	mkdir(folder, 0755);
 }
 
+/* Moves item to Plugins.disabled or back. */
 static int toggle(const struct item *item, char *error, size_t size)
 {
 	const struct kind *k = &kinds[item->kind];
 	char enabled[192];
 	char disabled[192];
-	static const char *const suffixes[] = {".py", ".pyc"};
-	int moved = 0;
+	char from[256];
+	char to[256];
+	int back = item->state == MOVED;
 	snprintf(enabled, sizeof(enabled), PYTHON "/%s", k->folder);
 	snprintf(disabled, sizeof(disabled), DISABLED_ROOT "/%s", k->disabled);
-	make_folders(item->disabled ? enabled : disabled);
-	if (!k->files) {
-		char from[256];
-		char to[256];
-		snprintf(from, sizeof(from), "%s/%s", item->disabled ? disabled : enabled, item->name);
-		snprintf(to, sizeof(to), "%s/%s", item->disabled ? enabled : disabled, item->name);
-		return move(from, to, error, size);
-	}
-	for (size_t s = 0; s < sizeof(suffixes) / sizeof(suffixes[0]); ++s) {
-		char from[256];
-		char to[256];
-		struct stat info;
-		snprintf(from, sizeof(from), "%s/%s%s", item->disabled ? disabled : enabled, item->name, suffixes[s]);
-		snprintf(to, sizeof(to), "%s/%s%s", item->disabled ? enabled : disabled, item->name, suffixes[s]);
-		if (lstat(from, &info) != 0)
-			continue;
-		if (!move(from, to, error, size))
-			return 0;
-		moved = 1;
-	}
-	if (!moved)
-		snprintf(error, size, _("No file of %s was found."), item->name);
-	return moved;
+	make_folders(back ? enabled : disabled);
+	snprintf(from, sizeof(from), "%s/%s", back ? disabled : enabled, item->name);
+	snprintf(to, sizeof(to), "%s/%s", back ? enabled : disabled, item->name);
+	return move(from, to, error, size);
 }
 
-/* What an item is known by in other files: the module name and, for converters
- * and renderers, the attribute in skins. */
+/* What a plugin is known by in other files: its module name. */
 struct needle {
 	char module[128];
-	char skin[96];
 };
 
 static int identifier_char(int c)
@@ -418,26 +473,10 @@ static int has_module(const char *data, size_t size, const char *module)
 
 static int file_uses(const char *path, const struct needle *n)
 {
-	FILE *file = fopen(path, "rb");  /* NOSONAR a file of an installed plugin */
-	struct stat info;
-	char *data;
-	int used = 0;
-	if (!file)
-		return 0;
-	if (fstat(fileno(file), &info) != 0 || info.st_size <= 0 || info.st_size > 16 * 1024 * 1024) {
-		fclose(file);
-		return 0;
-	}
-	data = malloc((size_t)info.st_size);
-	if (!data) {
-		fclose(file);
-		return 0;
-	}
-	if (fread(data, 1, (size_t)info.st_size, file) == (size_t)info.st_size)
-		used = has_module(data, (size_t)info.st_size, n->module) ||
-			(n->skin[0] && memmem(data, (size_t)info.st_size, n->skin, strlen(n->skin)));
+	size_t size;
+	char *data = read_data(path, &size);
+	int used = data && has_module(data, size, n->module);
 	free(data);
-	fclose(file);
 	return used;
 }
 
@@ -448,7 +487,7 @@ static int ends_with(const char *text, const char *end)
 	return a >= b && !strcmp(text + a - b, end);
 }
 
-/* The .py, .pyc and .xml files below folder. */
+/* The .py and .pyc files below folder. */
 static int folder_uses(const char *folder, const struct needle *n, int depth)
 {
 	DIR *dir = opendir(folder);  /* NOSONAR a folder of the installed plugins */
@@ -465,8 +504,7 @@ static int folder_uses(const char *folder, const struct needle *n, int depth)
 		snprintf(path, sizeof(path), "%.300s/%.200s", folder, entry->d_name);
 		if (is_directory(path))
 			used = depth < 6 && folder_uses(path, n, depth + 1);
-		else if (ends_with(entry->d_name, ".py") || ends_with(entry->d_name, ".pyc") ||
-			ends_with(entry->d_name, ".xml"))
+		else if (ends_with(entry->d_name, ".py") || ends_with(entry->d_name, ".pyc"))
 			used = file_uses(path, n);
 	}
 	closedir(dir);
@@ -475,63 +513,31 @@ static int folder_uses(const char *folder, const struct needle *n, int depth)
 
 static int item_uses(const struct item *item, const struct needle *n)
 {
-	const struct kind *k = &kinds[item->kind];
 	char path[256];
-	if (!k->files) {
-		snprintf(path, sizeof(path), PYTHON "/%s/%s", k->folder, item->name);
-		return folder_uses(path, n, 0);
-	}
-	snprintf(path, sizeof(path), PYTHON "/%s/%s.py", k->folder, item->name);
-	if (file_uses(path, n))
-		return 1;
-	snprintf(path, sizeof(path), PYTHON "/%s/%s.pyc", k->folder, item->name);
-	return file_uses(path, n);
+	snprintf(path, sizeof(path), PYTHON "/%s/%s", kinds[item->kind].folder, item->name);
+	return folder_uses(path, n, 0);
 }
 
-/* The folder of config.skin.primary_skin, e.g. "MetrixHD". */
-static int skin_folder(char *folder, size_t size)
-{
-	FILE *file = fopen("/etc/enigma2/settings", "r");
-	char line[256];
-	int found = 0;
-	if (!file)
-		return 0;
-	while (!found && fgets(line, sizeof(line), file))
-		if (!strncmp(line, "config.skin.primary_skin=", 25) && strchr(line + 25, '/')) {
-			snprintf(folder, size, "%.*s", (int)strcspn(line + 25, "/"), line + 25);
-			found = 1;
-		}
-	fclose(file);
-	return found;
-}
-
-/* The module name and the skin attribute of item. */
+/* The module name of item, e.g. "Plugins.Extensions.AutoTimer". */
 static void make_needle(const struct item *item, struct needle *n)
 {
-	const struct kind *k = &kinds[item->kind];
-	snprintf(n->module, sizeof(n->module), "%s.%s", k->folder, item->name);
+	snprintf(n->module, sizeof(n->module), "%s.%s", kinds[item->kind].folder, item->name);
 	for (char *c = n->module; *c; ++c)
 		if (*c == '/')
 			*c = '.';
-	n->skin[0] = '\0';
-	if (!strcmp(k->type, "Converter"))
-		snprintf(n->skin, sizeof(n->skin), "type=\"%s\"", item->name);
-	else if (!strcmp(k->type, "Renderer"))
-		snprintf(n->skin, sizeof(n->skin), "render=\"%s\"", item->name);
 }
 
-/* The enabled items and the skin that use item index, empty when none. */
+/* The enabled plugins that use item index, empty when none. */
 static void users(const struct list *l, int index, char *text, size_t size)
 {
 	struct needle n;
-	char skin[64];
 	size_t used = 0;
 	int count = 0;
 	int more = 0;
 	make_needle(&l->items[index], &n);
 	text[0] = '\0';
 	for (int i = 0; i < l->count; ++i) {
-		if (i == index || l->items[i].disabled || !item_uses(&l->items[i], &n))
+		if (i == index || l->items[i].state != ENABLED || !item_uses(&l->items[i], &n))
 			continue;
 		if (count++ < 6)
 			used += (size_t)snprintf(text + used, size - used, "%s%s (%s)", used ? ", " : "",
@@ -540,16 +546,6 @@ static void users(const struct list *l, int index, char *text, size_t size)
 			more++;
 		if (used >= size)
 			return;
-	}
-	if (n.skin[0] && skin_folder(skin, sizeof(skin))) {
-		char folder[128];
-		snprintf(folder, sizeof(folder), "/usr/share/enigma2/%s", skin);
-		if (folder_uses(folder, &n, 0))
-		{
-			char part[96];
-			snprintf(part, sizeof(part), _("the skin %s"), skin);
-			used += (size_t)snprintf(text + used, size - used, "%s%s", used ? ", " : "", part);
-		}
 	}
 	if (more && used < size)
 		snprintf(text + used, size - used, ngettext(" and %d more", " and %d more", more), more);
@@ -566,11 +562,12 @@ static enum input_key wait_ok(struct input_context *input, const volatile sig_at
 /* Scans the add-ons and their problems, sorted by kind and name. */
 static void load_list(struct list *l)
 {
-	l->enigma2_files = read_file(ENIGMA2_FILES, "\n");
 	for (size_t k = 0; k < sizeof(kinds) / sizeof(kinds[0]); ++k) {
 		scan(l, (int)k, 0);
 		scan(l, (int)k, 1);
 	}
+	if ((l->blacklist = blacklist_supported()))
+		apply_blacklists(l);
 	qsort(l->items, (size_t)l->count, sizeof(l->items[0]), by_kind_and_name);
 	start_problem(l);
 	debug_log_problems(l);
@@ -594,6 +591,17 @@ static int mark_problems(const struct list *l, char *marks, int *selected)
 	return problems;
 }
 
+/* What OK does next, for the footer. With the blacklists a plugin goes enabled, temporarily disabled,
+ * disabled and enabled again, without them it is moved to Plugins.disabled and back. */
+static const char *next_action(const struct list *l, const struct item *item)
+{
+	if (item->state == TEMPORARY)
+		return _("Disable permanently");
+	if (item->state != ENABLED)
+		return _("Enable");
+	return l->blacklist ? _("Disable temporarily") : _("Disable");
+}
+
 static void show_list(const struct ui_context *ui, const struct list *l, char (*labels)[300], const char **items,
 	char *marks, int problems, int selected)
 {
@@ -603,17 +611,22 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 	int disabled = 0;
 	char header[96];
 	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"),
-		.ok = l->items[selected].disabled ? _("Enable") : _("Disable"), .back = _("Menu")});
+		.ok = next_action(l, &l->items[selected]), .back = _("Menu")});
 	if (problems)
 		snprintf(body, sizeof(body), "%s", ngettext("The plugin that caused the problem is marked. Changes take "
 			"effect when Enigma2 starts again.", "The plugins that caused the problem are marked. Changes take "
 			"effect when Enigma2 starts again.", problems));
 	else
 		snprintf(body, sizeof(body), "%s", _("Changes take effect when Enigma2 starts again."));
+	if (l->blacklist)
+		snprintf(body + strlen(body), sizeof(body) - strlen(body), " %s",
+			_("Plugins disabled temporarily are enabled again when the receiver restarts."));
 	snprintf(header, sizeof(header), "%s\t%s\t%s", _("Name"), _("Type"), _("Problem"));
 	for (int i = 0; i < l->count; ++i) {
 		char name[96];
-		if (l->items[i].disabled)
+		if (l->items[i].state == TEMPORARY)
+			snprintf(name, sizeof(name), _("%s (temporarily)"), l->items[i].name);
+		else if (l->items[i].state != ENABLED)
 			snprintf(name, sizeof(name), _("%s (disabled)"), l->items[i].name);
 		else
 			snprintf(name, sizeof(name), "%s", l->items[i].name);
@@ -622,13 +635,13 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 		items[i] = labels[i];
 		if (l->items[i].problem[0])
 			marks[i] = 1;  /* Yellow. */
-		else if (l->items[i].disabled)
+		else if (l->items[i].state != ENABLED)
 			marks[i] = 2;  /* Grey. */
 		else
 			marks[i] = 0;
 	}
 	for (int i = 0; i < l->count; ++i)
-		disabled += l->items[i].disabled;
+		disabled += l->items[i].state != ENABLED;
 	if (disabled)
 		snprintf(title, sizeof(title), ngettext("%s (%d disabled)", "%s (%d disabled)", disabled), TITLE, disabled);
 	else
@@ -658,12 +671,25 @@ static int confirm_disable(const struct ui_context *ui, struct input_context *in
 static void toggle_item(const struct ui_context *ui, struct input_context *input, const volatile sig_atomic_t *stop,
 	struct list *l, int index)
 {
+	struct item *item = &l->items[index];
 	char error[320];
-	if (!l->items[index].disabled && !confirm_disable(ui, input, stop, l, index))
+	int done;
+	if (item->state == ENABLED && !confirm_disable(ui, input, stop, l, index))
 		return;
-	if (toggle(&l->items[index], error, sizeof(error)))
-		l->items[index].disabled = !l->items[index].disabled;
-	else {
+	if (item->state == MOVED || !l->blacklist) {
+		if ((done = toggle(item, error, sizeof(error))))
+			item->state = item->state == MOVED ? ENABLED : MOVED;
+	} else if (item->state == ENABLED) {
+		if ((done = blacklist_set(BLACKLIST_TEMPORARY, item->name, 1, error, sizeof(error))))
+			item->state = TEMPORARY;
+	} else if (item->state == TEMPORARY) {
+		if ((done = blacklist_set(BLACKLIST, item->name, 1, error, sizeof(error)) &&
+			blacklist_set(BLACKLIST_TEMPORARY, item->name, 0, error, sizeof(error))))
+			item->state = BLACKLISTED;
+	} else if ((done = blacklist_set(BLACKLIST, item->name, 0, error, sizeof(error)) &&
+		blacklist_set(BLACKLIST_TEMPORARY, item->name, 0, error, sizeof(error))))
+		item->state = ENABLED;
+	if (!done) {
 		ui_error(ui, TITLE, error);
 		wait_ok(input, stop);
 	}
@@ -697,8 +723,6 @@ void disable_plugins(const struct ui_context *ui, struct input_context *input,
 		wait_ok(input, stop);
 	}
 out:
-	if (l)
-		free(l->enigma2_files);
 	free(marks);
 	free(items);
 	free(labels);

@@ -66,10 +66,17 @@ loads the script of the newest release from GitHub into `/tmp`. Its list shows
 the slots with the running one chosen at first, OK restarts the receiver into
 the chosen slot.
 
-Disable plugins moves a plugin from `/usr/lib/enigma2/python/Plugins` to
-`/usr/lib/enigma2/python/Plugins.disabled`, so Enigma2 neither loads nor
-removes it, and back again. The plugin of the last start step
-is marked and chosen at first.
+Disable plugins keeps Enigma2 from loading a plugin. When Enigma2 knows the
+plugin blacklists (openatv/enigma2#3925), OK goes from enabled to disabled
+temporarily (`/tmp/plugin_blacklist`, until the receiver restarts), to disabled
+permanently (`/etc/enigma2/plugin_blacklist`) and back to enabled; nothing is
+moved, so updates and removals of the plugin keep working. Without them the
+plugin is moved from `/usr/lib/enigma2/python/Plugins` to
+`/usr/lib/enigma2/python/Plugins.disabled` and back. Only plugins are listed,
+a broken screen, tool, converter or renderer of Enigma2 is not fixed by
+disabling it. A plugin that caused problems at the last start, as start step,
+in the debug log or in the traceback of the crash log, is marked and chosen at
+first.
 
 Software update works like the online update of Enigma2: the traffic light of
 the feed blocks a red feed, `opkg update`, the list of all updates with the

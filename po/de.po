@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 09:17+0000\n"
+"POT-Creation-Date: 2026-10-01 15:10+0000\n"
 "PO-Revision-Date: 2026-09-30 08:40+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: German\n"
@@ -214,12 +214,13 @@ msgstr ""
 
 #: src/main.c
 msgid ""
-"Moves a plugin to Plugins.disabled, so Enigma2 neither loads nor removes it, "
-"and back again. The plugin of the last start step is chosen at first."
+"Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables "
+"it again. A plugin that caused problems at the last start is marked and "
+"chosen at first."
 msgstr ""
-"Verschiebt ein Plugin nach Plugins.disabled, sodass Enigma2 es weder lädt "
-"noch entfernt, und wieder zurück. Das Plugin des letzten Startschritts ist "
-"vorausgewählt."
+"Verhindert, dass Enigma2 ein Plugin lädt, temporär oder permanent, und "
+"aktiviert es wieder. Ein Plugin, das beim letzten Start Probleme gemacht "
+"hat, ist markiert und vorausgewählt."
 
 #: src/main.c
 msgid ""
@@ -965,20 +966,9 @@ msgid "System plugin"
 msgstr "System-Plugin"
 
 #: src/plugins.c
-msgid "Screen"
-msgstr "Screen"
-
-#: src/plugins.c
-msgid "Tool"
-msgstr "Tool"
-
-#: src/plugins.c
-msgid "Converter"
-msgstr "Converter"
-
-#: src/plugins.c
-msgid "Renderer"
-msgstr "Renderer"
+#, c-format
+msgid "%s cannot be written: %s"
+msgstr "%s kann nicht geschrieben werden: %s"
 
 #: src/plugins.c
 msgid "Stopped responding while loading"
@@ -1027,24 +1017,22 @@ msgstr "%s ist doppelt vorhanden, entferne zuerst eines davon."
 
 #: src/plugins.c
 #, c-format
-msgid "No file of %s was found."
-msgstr "Keine Datei von %s gefunden."
-
-#: src/plugins.c
-#, c-format
-msgid "the skin %s"
-msgstr "dem Skin %s"
-
-#: src/plugins.c
-#, c-format
 msgid " and %d more"
 msgid_plural " and %d more"
 msgstr[0] " und %d weiteres"
 msgstr[1] " und %d weiteren"
 
 #: src/plugins.c
+msgid "Disable permanently"
+msgstr "Permanent deaktivieren"
+
+#: src/plugins.c
 msgid "Enable"
 msgstr "Aktivieren"
+
+#: src/plugins.c
+msgid "Disable temporarily"
+msgstr "Temporär deaktivieren"
 
 #: src/plugins.c
 msgid "Disable"
@@ -1069,6 +1057,13 @@ msgid "Changes take effect when Enigma2 starts again."
 msgstr "Änderungen gelten ab dem nächsten Start von Enigma2."
 
 #: src/plugins.c
+msgid ""
+"Plugins disabled temporarily are enabled again when the receiver restarts."
+msgstr ""
+"Temporär deaktivierte Plugins werden beim Neustart des Receivers wieder "
+"aktiviert."
+
+#: src/plugins.c
 msgid "Name"
 msgstr "Name"
 
@@ -1079,6 +1074,11 @@ msgstr "Typ"
 #: src/plugins.c
 msgid "Problem"
 msgstr "Problem"
+
+#: src/plugins.c
+#, c-format
+msgid "%s (temporarily)"
+msgstr "%s (temporär)"
 
 #: src/plugins.c
 #, c-format

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 09:17+0000\n"
+"POT-Creation-Date: 2026-10-01 15:10+0000\n"
 "PO-Revision-Date: 2026-09-30 09:30+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: Arabic\n"
@@ -219,11 +219,12 @@ msgstr "يعرض أحدث سجل أعطال لـ Enigma2. يعرض BLUE خطوا
 
 #: src/main.c
 msgid ""
-"Moves a plugin to Plugins.disabled, so Enigma2 neither loads nor removes it, "
-"and back again. The plugin of the last start step is chosen at first."
+"Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables "
+"it again. A plugin that caused problems at the last start is marked and "
+"chosen at first."
 msgstr ""
-"ينقل الإضافة إلى Plugins.disabled، فلا يحمّلها Enigma2 ولا يحذفها، ويعيدها "
-"مرة أخرى. تكون إضافة آخر خطوة تشغيل محددة مسبقًا."
+"يمنع Enigma2 من تحميل إضافة، مؤقتًا أو بشكل دائم، ويفعّلها مرة أخرى. الإضافة "
+"التي سببت مشاكل في آخر تشغيل تكون مميزة ومحددة مسبقًا."
 
 #: src/main.c
 msgid ""
@@ -950,20 +951,9 @@ msgid "System plugin"
 msgstr "إضافة نظام"
 
 #: src/plugins.c
-msgid "Screen"
-msgstr "شاشة"
-
-#: src/plugins.c
-msgid "Tool"
-msgstr "أداة"
-
-#: src/plugins.c
-msgid "Converter"
-msgstr "Converter"
-
-#: src/plugins.c
-msgid "Renderer"
-msgstr "Renderer"
+#, c-format
+msgid "%s cannot be written: %s"
+msgstr "تعذرت كتابة %s: %s"
 
 #: src/plugins.c
 msgid "Stopped responding while loading"
@@ -1012,16 +1002,6 @@ msgstr "%s موجود مرتين، احذف إحدى النسختين أولاً
 
 #: src/plugins.c
 #, c-format
-msgid "No file of %s was found."
-msgstr "لم يتم العثور على أي ملف لـ %s."
-
-#: src/plugins.c
-#, c-format
-msgid "the skin %s"
-msgstr "الواجهة %s"
-
-#: src/plugins.c
-#, c-format
 msgid " and %d more"
 msgid_plural " and %d more"
 msgstr[0] " و%d أخرى"
@@ -1032,8 +1012,16 @@ msgstr[4] " و%d أخرى"
 msgstr[5] " و%d أخرى"
 
 #: src/plugins.c
+msgid "Disable permanently"
+msgstr "تعطيل دائم"
+
+#: src/plugins.c
 msgid "Enable"
 msgstr "تفعيل"
+
+#: src/plugins.c
+msgid "Disable temporarily"
+msgstr "تعطيل مؤقت"
 
 #: src/plugins.c
 msgid "Disable"
@@ -1065,6 +1053,11 @@ msgid "Changes take effect when Enigma2 starts again."
 msgstr "تسري التغييرات عند تشغيل Enigma2 من جديد."
 
 #: src/plugins.c
+msgid ""
+"Plugins disabled temporarily are enabled again when the receiver restarts."
+msgstr "تُفعَّل الإضافات المعطلة مؤقتًا مجددًا عند إعادة تشغيل جهاز الاستقبال."
+
+#: src/plugins.c
 msgid "Name"
 msgstr "الاسم"
 
@@ -1075,6 +1068,11 @@ msgstr "النوع"
 #: src/plugins.c
 msgid "Problem"
 msgstr "المشكلة"
+
+#: src/plugins.c
+#, c-format
+msgid "%s (temporarily)"
+msgstr "%s (مؤقتًا)"
 
 #: src/plugins.c
 #, c-format
