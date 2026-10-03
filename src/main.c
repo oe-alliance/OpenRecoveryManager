@@ -753,22 +753,33 @@ static void power(int action)
 
 static void usage(FILE *out, const char *program)
 {
-	fprintf(out,
-		"recovery-manager %s - Open Recovery Manager (ORM)\n"
-		"Steps in when Enigma2 does not start, e.g. after a broken update or plugin: shows where the start\n"
-		"stopped and offers to restart, disable plugins, update, reset, back up, flash and Remote Support.\n"
+	fprintf(out,  /* Within 48 columns, for narrow terminals. */
+		"recovery-manager %s\n"
+		"Open Recovery Manager (ORM)\n"
 		"\n"
-		"Usage: %s                       show the recovery menu, with Enigma2 stopped\n"
-		"       %s --crash RESULT [PID]  show the recovery menu after a failed start, PID ends the watch\n"
-		"       %s --watch RESULT        watch the start of enigma2 (from enigma2.sh)\n"
-		"       %s --version\n"
-		"       %s --help\n"
+		"Steps in when Enigma2 does not start, e.g.\n"
+		"after a broken update or plugin. It shows\n"
+		"where the start stopped and offers to restart,\n"
+		"disable plugins, update, reset, back up, flash\n"
+		"and Remote Support.\n"
 		"\n"
-		"The menu needs the screen: stop Enigma2 with init 4 first and start it again with init 3.\n"
-		"RESULT holds the lines failed=, reason=, ready=, uptime=, step= and crash=, e.g.\n"
-		"  printf 'failed=1\\nreason=crash\\nready=0\\nuptime=0\\nstep=Plugin AutoTimer\\ncrash=11\\n'"
-		" > /tmp/orm.result\n",
-		orm_version(), program, program, program, program, program);
+		"Usage: %s [OPTION]\n"
+		"\n"
+		"  (no option)\n"
+		"      Show the recovery menu. Stop Enigma2\n"
+		"      first with init 4 and start it again\n"
+		"      afterwards with init 3.\n"
+		"  --crash RESULT [PID]\n"
+		"      Show the menu after a failed start,\n"
+		"      PID ends the watch.\n"
+		"  --watch RESULT\n"
+		"      Watch the start of Enigma2, called by\n"
+		"      enigma2.sh.\n"
+		"  --version\n"
+		"      Show the version.\n"
+		"  -h, --help\n"
+		"      Show this help.\n",
+		orm_version(), program);
 }
 
 /* The menu on request, from enigma2.sh or a shell. */
