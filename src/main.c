@@ -132,7 +132,7 @@ static void add_durations(char **lines, int count)
 	for (int i = 0; i < count; ++i) {
 		char duration[16] = "";
 		char *line = lines[i];
-		char *message;
+		const char *message;
 		double time;
 		double next;
 		size_t size;
@@ -144,6 +144,8 @@ static void add_durations(char **lines, int count)
 		if ((strncmp(message, "step ", 5) == 0 || strncmp(message, "watching ", 9) == 0) &&
 			i + 1 < count && lines[i + 1] && sscanf(lines[i + 1], "%lf", &next) == 1)
 			snprintf(duration, sizeof(duration), "%.3f", next - time);
+		if (strncmp(message, "watching ", 9) == 0)
+			message = "Enigma2 starts";
 		size = strlen(message) + 48;
 		lines[i] = malloc(size);
 		if (!lines[i]) {
