@@ -193,7 +193,7 @@ msgstr "Brak logu awarii."
 
 #: src/main.c
 msgid "Restart Enigma2"
-msgstr "Uruchom ponownie"
+msgstr "Uruchom Enigma2"
 
 #: src/main.c
 msgid "Show crash log"
