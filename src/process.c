@@ -37,14 +37,10 @@ void process_set_idle(void (*idle)(void), unsigned int ms)
 
 void process_idle(void)
 {
-	uint64_t now;
-	if (!idle_call)
+	if (!idle_call || current_milliseconds() < idle_next)
 		return;
-	now = current_milliseconds();
-	if (now >= idle_next) {
-		idle_call();
-		idle_next = now + idle_ms;
-	}
+	idle_call();
+	idle_next = current_milliseconds() + idle_ms;  /* After it, a redraw can take longer than ms. */
 }
 
 int process_select(int maximum, fd_set *read_set, int timeout_ms)
