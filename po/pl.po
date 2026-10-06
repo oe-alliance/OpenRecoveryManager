@@ -193,7 +193,7 @@ msgstr "Brak logu awarii."
 
 #: src/main.c
 msgid "Restart Enigma2"
-msgstr "Uruchom ponownie Enigma2"
+msgstr "Uruchom ponownie"
 
 #: src/main.c
 msgid "Show crash log"
@@ -209,7 +209,7 @@ msgstr "Wyłącz wtyczki"
 
 #: src/main.c src/update.c
 msgid "Software update"
-msgstr "Aktualizacja oprogramowania"
+msgstr "Aktualizacja"
 
 #: src/main.c src/reset.c
 msgid "Reset settings"
@@ -217,7 +217,7 @@ msgstr "Resetuj ustawienia"
 
 #: src/main.c src/backup.c
 msgid "Back up image"
-msgstr "Utwórz kopię zapasową obrazu"
+msgstr "Utwórz kopię zapasową"
 
 #: src/main.c src/flash.c
 msgid "Flash online/local"
