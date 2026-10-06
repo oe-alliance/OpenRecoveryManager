@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 11:03+0000\n"
+"POT-Creation-Date: 2026-10-06 17:27+0000\n"
 "PO-Revision-Date: 2026-09-30 08:40+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: German\n"
@@ -81,6 +81,11 @@ msgstr "Letzter Schritt: %s"
 #: src/main.c src/crash.c
 msgid "unknown"
 msgstr "unbekannt"
+
+#: src/main.c
+#, c-format
+msgid "Cause: Enigma2 itself, %s is missing"
+msgstr "Ursache: Enigma2 selbst, %s fehlt"
 
 #: src/main.c src/ui.c
 #, c-format
@@ -1154,6 +1159,15 @@ msgstr[0] ""
 msgstr[1] ""
 "Die Plugins, die das Problem verursacht haben, sind markiert. Änderungen "
 "gelten ab dem nächsten Start von Enigma2."
+
+#: src/plugins.c
+msgid ""
+"No plugin caused the problem, Enigma2 itself is affected. Disabling plugins "
+"does not help here, a software update or flashing an image can."
+msgstr ""
+"Kein Plugin ist die Ursache, betroffen ist Enigma2 selbst. Plugins zu "
+"deaktivieren hilft hier nicht, eine Software-Aktualisierung oder das Flashen "
+"eines Images schon."
 
 #: src/plugins.c
 msgid "Changes take effect when Enigma2 starts again."

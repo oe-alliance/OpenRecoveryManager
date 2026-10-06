@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 11:10+0000\n"
+"POT-Creation-Date: 2026-10-06 17:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,6 +78,11 @@ msgstr ""
 
 #: src/main.c src/crash.c
 msgid "unknown"
+msgstr ""
+
+#: src/main.c
+#, c-format
+msgid "Cause: Enigma2 itself, %s is missing"
 msgstr ""
 
 #: src/main.c src/ui.c
@@ -1060,6 +1065,12 @@ msgid_plural ""
 "Enigma2 starts again."
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/plugins.c
+msgid ""
+"No plugin caused the problem, Enigma2 itself is affected. Disabling plugins "
+"does not help here, a software update or flashing an image can."
+msgstr ""
 
 #: src/plugins.c
 msgid "Changes take effect when Enigma2 starts again."

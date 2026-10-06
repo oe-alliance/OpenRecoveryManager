@@ -60,6 +60,8 @@ static void signal_handler(int signal_number)
 
 /* What happened for the card of the menu: its title and the last step, below it the signal. Without a
  * result ORM was opened from the menu of enigma2 or started from a console. */
+static char system_cause[128];
+
 static void describe(const struct watch_result *result, char *title, size_t title_size, char *text,
 	size_t text_size)
 {
@@ -91,6 +93,11 @@ static void describe(const struct watch_result *result, char *title, size_t titl
 	}
 	snprintf(text, text_size, _("Last step: %s"), result->step[0] ? result->step : _("unknown"));
 	snprintf(text + strlen(text), text_size - strlen(text), "%s", detail);
+	if (system_cause[0]) {
+		snprintf(text + strlen(text), text_size - strlen(text), "\n");
+		snprintf(text + strlen(text), text_size - strlen(text), _("Cause: Enigma2 itself, %s is missing"),
+			system_cause);
+	}
 }
 
 static void free_lines(char **lines, int count)
@@ -493,7 +500,7 @@ static int open_entry(struct ui_context *ui, struct input_context *input, int se
 			return 1;
 		break;
 	case ACTION_PLUGINS:
-		disable_plugins(ui, input, &stop_requested);
+		disable_plugins(ui, input, &stop_requested, system_cause[0] ? system_cause : NULL);
 		break;
 	case ACTION_RESET:
 		reset_settings(ui, input, &stop_requested);
@@ -522,6 +529,9 @@ static int recovery_menu(struct ui_context *ui, struct input_context *input,
 	long long deadline = milliseconds() + countdown * 1000LL;
 	int generation = -1;
 	int selected = 0;
+	if (result && !strcmp(result->crash, "python") &&
+		!crash_missing_module(system_cause, sizeof(system_cause)))
+		system_cause[0] = '\0';
 	mark_items(marks);
 	ui_sidebar(ui, names, icons, ITEM_COUNT, marks);
 	while (!stop_requested) {

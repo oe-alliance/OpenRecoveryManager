@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 12:05+0000\n"
+"POT-Creation-Date: 2026-10-06 17:27+0000\n"
 "PO-Revision-Date: 2026-10-03 09:42+0100\n"
 "Last-Translator: StreamF\n"
 "Language-Team: Polish\n"
@@ -83,6 +83,11 @@ msgstr "Ostatni krok: %s"
 #: src/main.c src/crash.c
 msgid "unknown"
 msgstr "nieznany"
+
+#: src/main.c
+#, c-format
+msgid "Cause: Enigma2 itself, %s is missing"
+msgstr "Przyczyna: sama Enigma2, brak %s"
 
 #: src/main.c src/ui.c
 #, c-format
@@ -1148,6 +1153,14 @@ msgstr[1] ""
 msgstr[2] ""
 "Wtyczki, które spowodowały problem, są oznaczone. Zmiany zostaną zastosowane "
 "po ponownym uruchomieniu Enigma2."
+
+#: src/plugins.c
+msgid ""
+"No plugin caused the problem, Enigma2 itself is affected. Disabling plugins "
+"does not help here, a software update or flashing an image can."
+msgstr ""
+"Żadna wtyczka nie spowodowała problemu, dotyczy on samej Enigma2. Wyłączanie "
+"wtyczek tu nie pomoże, pomoże aktualizacja oprogramowania lub wgranie obrazu."
 
 #: src/plugins.c
 msgid "Changes take effect when Enigma2 starts again."

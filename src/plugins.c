@@ -53,6 +53,7 @@ struct list {
 	struct item items[MAX_ITEMS];
 	int count;
 	int blacklist;  /* Enigma2 knows the blacklists. */
+	const char *system_cause;  /* The module of enigma2 that was missing, no plugin is to blame. */
 };
 
 static int is_directory(const char *path)
@@ -606,7 +607,7 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 	char *marks, int problems, int selected)
 {
 	char footer[128];
-	char body[256];
+	char body[512];
 	char title[128];
 	int disabled = 0;
 	char header[96];
@@ -616,6 +617,9 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 		snprintf(body, sizeof(body), "%s", ngettext("The plugin that caused the problem is marked. Changes take "
 			"effect when Enigma2 starts again.", "The plugins that caused the problem are marked. Changes take "
 			"effect when Enigma2 starts again.", problems));
+	else if (l->system_cause)
+		snprintf(body, sizeof(body), "%s", _("No plugin caused the problem, Enigma2 itself is affected. Disabling "
+			"plugins does not help here, a software update or flashing an image can."));
 	else
 		snprintf(body, sizeof(body), "%s", _("Changes take effect when Enigma2 starts again."));
 	if (l->blacklist)
@@ -696,7 +700,7 @@ static void toggle_item(const struct ui_context *ui, struct input_context *input
 }
 
 void disable_plugins(const struct ui_context *ui, struct input_context *input,
-	const volatile sig_atomic_t *stop)
+	const volatile sig_atomic_t *stop, const char *system_cause)
 {
 	struct list *l = calloc(1, sizeof(*l));
 	char (*labels)[300] = calloc(MAX_ITEMS, sizeof(*labels));
@@ -707,6 +711,7 @@ void disable_plugins(const struct ui_context *ui, struct input_context *input,
 	if (!l || !labels || !items || !marks)
 		goto out;
 	load_list(l);
+	l->system_cause = system_cause;
 	problems = mark_problems(l, marks, &selected);
 	while (l->count && !(stop && *stop)) {
 		enum input_key key;

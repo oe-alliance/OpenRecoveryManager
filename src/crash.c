@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #define TITLE _("Crash report")
+#define PYTHON "/usr/lib/enigma2/python/"
 
 /* config.crash.debug_path, enigma2 saves only a changed value. */
 static void debug_path(char *path, size_t size)
@@ -122,6 +123,38 @@ int crash_log_path(char *path, size_t size)
 int debug_log_path(char *path, size_t size)
 {
 	return newest_log(is_debug_log, path, size);
+}
+
+int crash_missing_module(char *module, size_t size)
+{
+	char path[512];
+	char line[1024];
+	char lost[160] = "";
+	int traceback = 0;
+	int plugin = 0;
+	FILE *file;
+	if (!crash_log_path(path, sizeof(path)) || !(file = fopen(path, "r")))  /* NOSONAR the crash log of enigma2 */
+		return 0;
+	while (fgets(line, sizeof(line), file)) {
+		const char *start = strstr(line, "ModuleNotFoundError: No module named '");
+		if (strstr(line, "Traceback (most recent call last):")) {  /* Only the last one counts. */
+			traceback = 1;
+			plugin = 0;
+			lost[0] = '\0';
+		} else if (traceback && strstr(line, "File \"" PYTHON "Plugins/")) {
+			plugin = 1;
+		} else if (traceback && start) {
+			start += strlen("ModuleNotFoundError: No module named '");
+			snprintf(lost, sizeof(lost), "%.*s", (int)strcspn(start, "'"), start);
+		}
+	}
+	fclose(file);
+	if (!traceback || plugin || !lost[0] || !strncmp(lost, "Plugins.", 8))
+		return 0;
+	for (char *dot = strchr(lost, '.'); dot; dot = strchr(dot, '.'))
+		*dot = '/';
+	snprintf(module, size, "%s", lost);
+	return 1;
 }
 
 int crash_logs(struct log_file *logs, int max)

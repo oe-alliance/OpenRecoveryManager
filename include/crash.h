@@ -15,6 +15,7 @@
 /* The newest crash or debug log of enigma2 in its log folders, 0 when there is none. */
 int crash_log_path(char *path, size_t size);
 int debug_log_path(char *path, size_t size);
+int crash_missing_module(char *module, size_t size);
 
 struct log_file {
 	char path[512];
