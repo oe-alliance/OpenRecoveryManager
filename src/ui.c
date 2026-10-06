@@ -6,6 +6,7 @@
 #include "lvgl.h"
 #include "process.h"
 #include "qrcodegen.h"
+#include "version.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -532,6 +533,7 @@ static void build_base(void)
 {
 	lv_obj_t *screen = lv_screen_active();
 	lv_obj_t *body;
+	char title[96];
 	lv_obj_clean(screen);
 	if (spinner)
 		lv_obj_delete(spinner);
@@ -546,7 +548,8 @@ static void build_base(void)
 	header = row(screen, px(24));
 	lv_obj_set_height(header, px(96));
 	lv_obj_set_style_pad_hor(header, px(60), 0);
-	header_title = label(header, "Open Recovery Manager (ORM)", FONT_HEAD, COLOR_TEXT);
+	snprintf(title, sizeof(title), "Open Recovery Manager (ORM) %s", orm_version());
+	header_title = label(header, title, FONT_HEAD, COLOR_TEXT);
 	lv_obj_set_flex_grow(header_title, 1);
 	header_remote = ltr(label(header, "", FONT_ITEM, COLOR_WARN));
 	lv_obj_set_style_pad_right(header_remote, px(40), 0);

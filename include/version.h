@@ -17,7 +17,7 @@ static inline const char *orm_version(void)
 	if (!ORM_REVISION[0])
 		return ORM_VERSION;
 	if (!text[0])
-		snprintf(text, sizeof(text), "%s (%s)", ORM_VERSION, ORM_REVISION);
+		snprintf(text, sizeof(text), "%s-%s", ORM_VERSION, ORM_REVISION);
 	return text;
 }
 

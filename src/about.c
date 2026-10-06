@@ -74,7 +74,7 @@ void about(const struct ui_context *ui, struct input_context *input, const volat
 			snprintf(rows[i], sizeof(rows[i]), "%s\t%s\t%s", licenses[i].name, _(licenses[i].role), licenses[i].license);
 			items[i] = rows[i];
 		}
-		snprintf(body, sizeof(body), "Open Recovery Manager %s\n" COPYRIGHT "\n\n%s", orm_version(),
+		snprintf(body, sizeof(body), "Open Recovery Manager (ORM) %s\n" COPYRIGHT "\n\n%s", orm_version(),
 			_("Free software under the GPLv3. OK shows the full license of each part."));
 		snprintf(header, sizeof(header), "%s\t%s\t%s", _("Component"), _("Part"), _("License"));
 		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("License"),
