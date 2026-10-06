@@ -16,6 +16,8 @@
 #define TITLE _("Reset settings")
 #define CONFIG "/etc/enigma2"
 #define DEFAULTS "/usr/share/enigma2/defaults"  /* Like the factory reset of enigma2. */
+
+enum mode { SKIN, SETTINGS, EVERYTHING };
 static int copy_file(const char *from, const char *to)
 {
 	FILE *in = fopen(from, "rb");
@@ -77,15 +79,58 @@ void remove_restore_flags(void)
 	closedir(media);
 }
 
-/* Only the file settings or all of CONFIG go to a folder next to it, nothing is deleted. */
-static int reset(int all, char *kept, size_t size, char *error, size_t error_size)
+/* settings without the skins, the old file and the user skins of enigma2 go to kept. */
+static int reset_skin(const char *kept, char *error, size_t error_size)
+{
+	char line[1024];
+	char path[256];
+	FILE *in;
+	FILE *out;
+	DIR *dir;
+	struct dirent *entry;
+	snprintf(path, sizeof(path), "%s/settings", kept);
+	if (!copy_file(CONFIG "/settings", path) && errno != ENOENT) {
+		snprintf(error, error_size, _("%s cannot be saved: %s"), CONFIG "/settings", strerror(errno));
+		return 0;
+	}
+	if ((in = fopen(CONFIG "/settings", "r"))) {
+		if (!(out = fopen(CONFIG "/settings.new", "w"))) {  /* NOSONAR the settings of enigma2 */
+			snprintf(error, error_size, _("%s cannot be created: %s"), CONFIG "/settings.new", strerror(errno));
+			fclose(in);
+			return 0;
+		}
+		while (fgets(line, sizeof(line), in))
+			if (strncmp(line, "config.skin.primary_skin=", 25) && strncmp(line, "config.skin.display_skin=", 25))
+				fputs(line, out);
+		fclose(in);
+		if (fclose(out) != 0 || rename(CONFIG "/settings.new", CONFIG "/settings") != 0) {
+			snprintf(error, error_size, _("%s cannot be changed: %s"), CONFIG "/settings", strerror(errno));
+			return 0;
+		}
+	}
+	if ((dir = opendir(CONFIG))) {
+		while ((entry = readdir(dir)))
+			if (!strncmp(entry->d_name, "skin_user", 9) && strstr(entry->d_name, ".xml")) {
+				char from[512];
+				char to[512];
+				snprintf(from, sizeof(from), CONFIG "/%.255s", entry->d_name);
+				snprintf(to, sizeof(to), "%s/%.255s", kept, entry->d_name);
+				rename(from, to);  /* NOSONAR moving the user skin aside is the reset */
+			}
+		closedir(dir);
+	}
+	return 1;
+}
+
+/* Only the skin, the file settings or all of CONFIG go to a folder next to it, nothing is deleted. */
+static int reset(enum mode mode, char *kept, size_t size, char *error, size_t error_size)
 {
 	char stamp[32];
 	struct tm local;
 	time_t now = time(NULL);
 	strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", localtime_r(&now, &local));
 	snprintf(kept, size, CONFIG "-reset-%s", stamp);
-	if (all) {
+	if (mode == EVERYTHING) {
 		if (rename(CONFIG, kept) != 0 || mkdir(CONFIG, 0755) != 0) {  /* NOSONAR moving the settings aside is the reset */
 			snprintf(error, error_size, _("%s cannot be moved: %s"), CONFIG, strerror(errno));
 			return 0;
@@ -100,6 +145,8 @@ static int reset(int all, char *kept, size_t size, char *error, size_t error_siz
 			snprintf(error, error_size, _("%s cannot be created: %s"), kept, strerror(errno));
 			return 0;
 		}
+		if (mode == SKIN)
+			return reset_skin(kept, error, error_size);
 		snprintf(to, sizeof(to), "%s/settings", kept);
 		if (rename(CONFIG "/settings", to) != 0 && errno != ENOENT) {
 			snprintf(error, error_size, _("%s cannot be moved: %s"), CONFIG "/settings", strerror(errno));
@@ -121,37 +168,49 @@ static void wait_ok(struct input_context *input, const volatile sig_atomic_t *st
 void reset_settings(const struct ui_context *ui, struct input_context *input,
 	const volatile sig_atomic_t *stop)
 {
-	const char *items[2];
+	const char *items[3];
 	char body[512];
 	char footer[128];
 	int selected = 0;
 	while (!(stop && *stop)) {
 		enum input_key key;
-		items[0] = _("Only the settings (channel lists and timers stay)");
-		items[1] = _("Everything, including channel lists and timers");
-		snprintf(body, sizeof(body), _("What should be reset? Enigma2 then starts with the wizard, which offers to "
-			"restore a backup. The files are kept in a folder next to %s, the network settings stay."), CONFIG);
+		items[SKIN] = _("Only the skin (all other settings stay)");
+		items[SETTINGS] = _("Only the settings (channel lists and timers stay)");
+		items[EVERYTHING] = _("Everything, including channel lists and timers");
+		snprintf(body, sizeof(body), _("What should be reset? After the settings or everything, Enigma2 starts with "
+			"the wizard, which offers to restore a backup. The files are kept in a folder next to %s, the network "
+			"settings stay."), CONFIG);
 		ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"), .ok = _("Reset"),
 			.back = _("Menu")});
-		ui_menu(ui, TITLE, body, items, 2, selected, footer);
+		ui_menu(ui, TITLE, body, items, 3, selected, footer);
 		key = input_next(input, 1000);
-		selected = list_move(key, selected, 2);
+		selected = list_move(key, selected, 3);
 		if (key == INPUT_OK) {
+			static const char *const questions[] = {
+				N_("Reset the skin now? Enigma2 then starts with its standard skin, all other settings stay. Your "
+					"old settings are kept."),
+				N_("Reset the settings now? Your channel lists and timers stay, all other settings start from the "
+					"beginning. Your old settings are kept."),
+				N_("Reset everything now? Enigma2 then starts like new, without channel lists and timers. Your old "
+					"files are kept.")
+			};
 			char kept[128];
 			char text[512];
-			if (!ask(ui, input, stop, TITLE, selected ? _("Reset everything now? Enigma2 then starts like new, "
-				"without channel lists and timers. Your old files are kept.") : _("Reset the settings now? Your "
-				"channel lists and timers stay, all other settings start from the beginning. Your old settings "
-				"are kept."), 0))
+			if (!ask(ui, input, stop, TITLE, _(questions[selected]), 0))
 				continue;
-			if (!reset(selected == 1, kept, sizeof(kept), text, sizeof(text))) {
+			if (!reset((enum mode)selected, kept, sizeof(kept), text, sizeof(text))) {
 				ui_error(ui, TITLE, text);
 				wait_ok(input, stop);
 				return;
 			}
-			snprintf(text, sizeof(text), selected ? _("The files of Enigma2 were reset, the old ones are kept in %s.") :
-				_("The settings were reset, the old file is kept in %s."), kept);
-			snprintf(text + strlen(text), sizeof(text) - strlen(text), "\n\n%s",
+			if (selected == SKIN)
+				snprintf(text, sizeof(text), _("The skin was reset, the old settings are kept in %s."), kept);
+			else if (selected == SETTINGS)
+				snprintf(text, sizeof(text), _("The settings were reset, the old file is kept in %s."), kept);
+			else
+				snprintf(text, sizeof(text), _("The files of Enigma2 were reset, the old ones are kept in %s."), kept);
+			snprintf(text + strlen(text), sizeof(text) - strlen(text), "\n\n%s", selected == SKIN ?
+				_("Restart Enigma2 in the menu to start with the standard skin.") :
 				_("Restart Enigma2 in the menu to start with the wizard."));
 			ui_keys(footer, sizeof(footer), &(struct ui_key_names){.ok = _("Menu")});
 			ui_screen(ui, TITLE, text, footer);

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:27+0000\n"
+"POT-Creation-Date: 2026-10-06 18:25+0000\n"
 "PO-Revision-Date: 2026-10-03 09:42+0100\n"
 "Last-Translator: StreamF\n"
 "Language-Team: Polish\n"
@@ -263,11 +263,12 @@ msgstr ""
 
 #: src/main.c
 msgid ""
-"Resets Enigma2 to the state of a new installation. Your old settings are "
-"moved aside, so nothing is deleted for good."
+"Resets the skin, the settings or all of Enigma2 to the state of a new "
+"installation. Your old settings are moved aside, so nothing is deleted for "
+"good."
 msgstr ""
-"Przywraca Enigma2 do stanu po nowej instalacji. Stare ustawienia są "
-"przenoszone na bok, więc nic nie zostaje trwale usunięte."
+"Przywraca skórkę, ustawienia albo całą Enigma2 do stanu po nowej instalacji. "
+"Stare ustawienia są przenoszone na bok, więc nic nie zostaje trwale usunięte."
 
 #: src/main.c
 msgid ""
@@ -476,15 +477,29 @@ msgstr ""
 msgid "The Remote Support session ended."
 msgstr "Sesja zdalnej pomocy została zakończona."
 
+#: src/reset.c
+#, c-format
+msgid "%s cannot be saved: %s"
+msgstr "Nie można zapisać kopii %s: %s"
+
+#: src/reset.c
+#, c-format
+msgid "%s cannot be created: %s"
+msgstr "Nie można utworzyć %s: %s"
+
+#: src/reset.c
+#, c-format
+msgid "%s cannot be changed: %s"
+msgstr "Nie można zmienić %s: %s"
+
 #: src/reset.c src/plugins.c
 #, c-format
 msgid "%s cannot be moved: %s"
 msgstr "Nie można przenieść %s: %s"
 
 #: src/reset.c
-#, c-format
-msgid "%s cannot be created: %s"
-msgstr "Nie można utworzyć %s: %s"
+msgid "Only the skin (all other settings stay)"
+msgstr "Tylko skórkę (wszystkie inne ustawienia zostają)"
 
 #: src/reset.c
 msgid "Only the settings (channel lists and timers stay)"
@@ -497,13 +512,13 @@ msgstr "Wszystko, łącznie z listami kanałów i timerami"
 #: src/reset.c
 #, c-format
 msgid ""
-"What should be reset? Enigma2 then starts with the wizard, which offers to "
-"restore a backup. The files are kept in a folder next to %s, the network "
-"settings stay."
+"What should be reset? After the settings or everything, Enigma2 starts with "
+"the wizard, which offers to restore a backup. The files are kept in a folder "
+"next to %s, the network settings stay."
 msgstr ""
-"Co zresetować? Enigma2 uruchomi się z kreatorem, który zaproponuje "
-"przywrócenie kopii zapasowej. Pliki zostaną zachowane w folderze obok %s, "
-"ustawienia sieci pozostaną bez zmian."
+"Co zresetować? Po zresetowaniu ustawień lub wszystkiego Enigma2 uruchomi się "
+"z kreatorem, który zaproponuje przywrócenie kopii zapasowej. Pliki zostaną "
+"zachowane w folderze obok %s, ustawienia sieci pozostaną bez zmian."
 
 #: src/reset.c
 msgid "Reset"
@@ -511,11 +526,11 @@ msgstr "Resetuj"
 
 #: src/reset.c
 msgid ""
-"Reset everything now? Enigma2 then starts like new, without channel lists "
-"and timers. Your old files are kept."
+"Reset the skin now? Enigma2 then starts with its standard skin, all other "
+"settings stay. Your old settings are kept."
 msgstr ""
-"Zresetować teraz wszystko? Enigma2 uruchomi się jak nowa, bez list kanałów i "
-"timerów. Stare pliki zostaną zachowane."
+"Zresetować teraz skórkę? Enigma2 uruchomi się wtedy ze standardową skórką, "
+"wszystkie inne ustawienia zostaną. Stare ustawienia zostaną zachowane."
 
 #: src/reset.c
 msgid ""
@@ -526,14 +541,31 @@ msgstr ""
 "ustawienia zaczną się od nowa. Stare ustawienia zostaną zachowane."
 
 #: src/reset.c
+msgid ""
+"Reset everything now? Enigma2 then starts like new, without channel lists "
+"and timers. Your old files are kept."
+msgstr ""
+"Zresetować teraz wszystko? Enigma2 uruchomi się jak nowa, bez list kanałów i "
+"timerów. Stare pliki zostaną zachowane."
+
+#: src/reset.c
 #, c-format
-msgid "The files of Enigma2 were reset, the old ones are kept in %s."
-msgstr "Pliki Enigma2 zostały zresetowane, stare zachowano w %s."
+msgid "The skin was reset, the old settings are kept in %s."
+msgstr "Skórka została zresetowana, stare ustawienia zachowano w %s."
 
 #: src/reset.c
 #, c-format
 msgid "The settings were reset, the old file is kept in %s."
 msgstr "Ustawienia zostały zresetowane, stary plik zachowano w %s."
+
+#: src/reset.c
+#, c-format
+msgid "The files of Enigma2 were reset, the old ones are kept in %s."
+msgstr "Pliki Enigma2 zostały zresetowane, stare zachowano w %s."
+
+#: src/reset.c
+msgid "Restart Enigma2 in the menu to start with the standard skin."
+msgstr "Uruchom ponownie Enigma2 w menu, aby rozpocząć ze standardową skórką."
 
 #: src/reset.c
 msgid "Restart Enigma2 in the menu to start with the wizard."

@@ -378,8 +378,8 @@ static void preview(const struct ui_context *ui, int item, const struct watch_re
 			"caused problems at the last start is marked and chosen at first."),
 		N_("Installs the latest updates for your receiver. You see the list and confirm before anything is "
 			"installed."),
-		N_("Resets Enigma2 to the state of a new installation. Your old settings are moved aside, so nothing is "
-			"deleted for good."),
+		N_("Resets the skin, the settings or all of Enigma2 to the state of a new installation. Your old settings "
+			"are moved aside, so nothing is deleted for good."),
 		N_("Saves the running image as a zip file on a USB stick or hard disk, so it can be flashed again later."),
 		N_("Flashes an image into the running slot, from the feed of the running distribution or from the media. "
 			"A check with ofgwrite tests the image before anything is written."),

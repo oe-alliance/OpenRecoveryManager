@@ -88,6 +88,9 @@ The receiver is restarted afterwards in the menu.
 Reset settings moves either the file `settings` or all of `/etc/enigma2` into
 `/etc/enigma2-reset-<time>`, so nothing is deleted, and puts the defaults of
 the image in place, but keeps the network. Enigma2 then starts with the wizard.
+Only the skin keeps a copy of `settings` there, removes the GUI and display skin
+from it and moves the user skins `skin_user*.xml` along, so Enigma2 starts with
+its standard skin and all other settings.
 
 Back up image saves the running slot like the image backup of Enigma2
 (ImageBackup.py), without the USB recovery images, as

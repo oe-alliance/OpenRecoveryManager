@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:27+0000\n"
+"POT-Creation-Date: 2026-10-06 18:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -248,8 +248,9 @@ msgstr ""
 
 #: src/main.c
 msgid ""
-"Resets Enigma2 to the state of a new installation. Your old settings are "
-"moved aside, so nothing is deleted for good."
+"Resets the skin, the settings or all of Enigma2 to the state of a new "
+"installation. Your old settings are moved aside, so nothing is deleted for "
+"good."
 msgstr ""
 
 #: src/main.c
@@ -436,14 +437,28 @@ msgstr ""
 msgid "The Remote Support session ended."
 msgstr ""
 
+#: src/reset.c
+#, c-format
+msgid "%s cannot be saved: %s"
+msgstr ""
+
+#: src/reset.c
+#, c-format
+msgid "%s cannot be created: %s"
+msgstr ""
+
+#: src/reset.c
+#, c-format
+msgid "%s cannot be changed: %s"
+msgstr ""
+
 #: src/reset.c src/plugins.c
 #, c-format
 msgid "%s cannot be moved: %s"
 msgstr ""
 
 #: src/reset.c
-#, c-format
-msgid "%s cannot be created: %s"
+msgid "Only the skin (all other settings stay)"
 msgstr ""
 
 #: src/reset.c
@@ -457,9 +472,9 @@ msgstr ""
 #: src/reset.c
 #, c-format
 msgid ""
-"What should be reset? Enigma2 then starts with the wizard, which offers to "
-"restore a backup. The files are kept in a folder next to %s, the network "
-"settings stay."
+"What should be reset? After the settings or everything, Enigma2 starts with "
+"the wizard, which offers to restore a backup. The files are kept in a folder "
+"next to %s, the network settings stay."
 msgstr ""
 
 #: src/reset.c
@@ -468,8 +483,8 @@ msgstr ""
 
 #: src/reset.c
 msgid ""
-"Reset everything now? Enigma2 then starts like new, without channel lists "
-"and timers. Your old files are kept."
+"Reset the skin now? Enigma2 then starts with its standard skin, all other "
+"settings stay. Your old settings are kept."
 msgstr ""
 
 #: src/reset.c
@@ -479,13 +494,28 @@ msgid ""
 msgstr ""
 
 #: src/reset.c
+msgid ""
+"Reset everything now? Enigma2 then starts like new, without channel lists "
+"and timers. Your old files are kept."
+msgstr ""
+
+#: src/reset.c
 #, c-format
-msgid "The files of Enigma2 were reset, the old ones are kept in %s."
+msgid "The skin was reset, the old settings are kept in %s."
 msgstr ""
 
 #: src/reset.c
 #, c-format
 msgid "The settings were reset, the old file is kept in %s."
+msgstr ""
+
+#: src/reset.c
+#, c-format
+msgid "The files of Enigma2 were reset, the old ones are kept in %s."
+msgstr ""
+
+#: src/reset.c
+msgid "Restart Enigma2 in the menu to start with the standard skin."
 msgstr ""
 
 #: src/reset.c
