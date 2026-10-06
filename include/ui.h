@@ -101,8 +101,8 @@ void ui_redraw(const struct ui_context *ui);
 /* A spinner and the running time also when the footer offers keys, e.g. "BACK: Cancel" of a download. Without
  * keys in the footer they are shown anyway. */
 void ui_busy(const struct ui_context *ui, int on);
-/* 1 when the footer drawn last offers OK, so nothing runs that a key could interrupt. */
-int ui_offers_ok(void);
+/* 1 when the footer drawn last offers OK or the arrows, so nothing runs that a key could interrupt. */
+int ui_idle(void);
 /* Lights up the key of the footer, named like "OK" or "UP", for a moment. */
 void ui_key_pressed(const char *key);
 /* The screen without a window of width x height in the middle, which another program draws. */

@@ -54,7 +54,7 @@ static void show_license(const struct ui_context *ui, struct input_context *inpu
 	do
 		key = text_view(ui, input, stop, &(struct text_page){.title = license->name, .lines = lines, .count = count,
 			.first = &first, .empty = _("The license is empty."), .footer = footer});
-	while (key != INPUT_BACK && key != INPUT_OK && key != INPUT_NONE);
+	while (key != INPUT_BACK && key != INPUT_NONE);
 	for (int i = 0; i < count; ++i)
 		free(lines[i]);
 	free(lines);

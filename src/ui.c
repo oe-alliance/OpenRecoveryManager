@@ -82,7 +82,7 @@ static struct {
 static int footer_key_count;
 /* While something long runs: a spinner at the top right and the time in the footer. */
 static int footer_has_keys;
-static int footer_has_ok;
+static int footer_idle;
 static int busy_forced;
 static int busy;
 static uint32_t busy_since;
@@ -433,9 +433,9 @@ static void animate(void)
 		busy_update();
 }
 
-int ui_offers_ok(void)
+int ui_idle(void)
 {
-	return footer_has_ok;
+	return footer_idle;
 }
 
 /* Whether the footer key named name stands for the key named key: ARROWS for the arrows, 1-9 for a digit. */
@@ -609,8 +609,8 @@ static void footer_part(char *text)
 		if (name && text[name] == ':') {
 			lv_obj_t *pair = box(footer);
 			footer_has_keys = 1;
-			if (name == 2 && !strncmp(text, "OK", 2))
-				footer_has_ok = 1;
+			if ((name == 2 && !strncmp(text, "OK", 2)) || (name == 6 && !strncmp(text, "ARROWS", 6)))
+				footer_idle = 1;
 			uint32_t color = key_color(text, name);
 			lv_obj_set_flex_flow(pair, LV_FLEX_FLOW_ROW);
 			lv_obj_set_style_pad_column(pair, px(10), 0);
@@ -648,7 +648,7 @@ static void footer_set(const char *text)
 	elapsed = NULL;  /* Cleaned with it; a new object may get its address. */
 	footer_key_count = 0;
 	footer_has_keys = 0;
-	footer_has_ok = 0;
+	footer_idle = 0;
 	snprintf(copy, sizeof(copy), "%s", text);
 	right = strchr(copy, '\t');
 	if (right)

@@ -331,7 +331,7 @@ static void show_logs(const struct ui_context *ui, struct input_context *input)
 				current = chosen;
 				count = load_crash_log(logs[current].path, &lines, &first, title, sizeof(title));
 			}
-		} else
+		} else if (key == INPUT_BACK || key == INPUT_NONE)
 			break;
 	}
 	blue_taken = 0;
@@ -655,12 +655,12 @@ static int jump_pending(void)
 }
 
 /* HELP, BLUE and INFO over every screen, BACK returns to it. A digit in the screen of an entry or of
- * these keys opens another entry when OK is offered there, nothing runs then. */
+ * these keys opens another entry when OK or the arrows are offered there, nothing runs then. */
 static int global_key(enum input_key key)
 {
 	static int busy;
 	int focused;
-	if ((in_entry || busy) && ui_offers_ok() && ((key >= INPUT_1 && key <= INPUT_9) || key == INPUT_0)) {
+	if ((in_entry || busy) && ui_idle() && ((key >= INPUT_1 && key <= INPUT_9) || key == INPUT_0)) {
 		int chosen = key == INPUT_0 ? 9 : key - INPUT_1;
 		if (chosen < ITEM_COUNT && item_marks[chosen] != 2)
 			jump_to = chosen;
