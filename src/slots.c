@@ -189,7 +189,7 @@ static int fetch_selector(const struct ui_context *ui, char *path, size_t size)
 	tag[i] = '\0';
 	if (!tag[0])
 		return 0;
-	snprintf(url, sizeof(url), "https://raw.githubusercontent.com/" REPOSITORY "/%s/src/usr/bin/multiboot-selector.sh", tag);
+	snprintf(url, sizeof(url), "https://github.com/" REPOSITORY "/releases/latest/download/multiboot-selector.sh");
 	ui_progress(ui, TITLE, _("Loading the multiboot selector from GitHub."), 60, tag, _("Please wait..."));
 	unlink(DOWNLOADED);
 	if (!download(url, DOWNLOADED, NULL, 0))
