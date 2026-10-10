@@ -7,7 +7,7 @@
 #include "ui.h"
 
 /* multiboot-selector.sh of oe-alliance/MultiBootSelectorPlugin switches the slot. */
-#define MULTIBOOT_SELECTOR "/usr/bin/multiboot-selector.sh"
+#define MULTIBOOT_SELECTOR "/tmp/multiboot-selector.sh"
 
 /* 1 when the receiver has slots to start, found like Enigma2 does. */
 int slots_multiboot(void);
