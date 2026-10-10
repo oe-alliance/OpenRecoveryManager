@@ -303,7 +303,7 @@ msgid ""
 "Enigma2 revision %s"
 msgstr ""
 "%s %s (%s)\n"
-"%s %s, construye %s (%s)\n"
+"%s %s, build %s (%s)\n"
 "Revisión de Enigma2 %s"
 
 #: src/main.c
