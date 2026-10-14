@@ -688,6 +688,14 @@ msgid "flashed too (%s)"
 msgstr "يُثبَّت أيضًا (%s)"
 
 #: src/flash.c
+msgid "flashed too (kernel.img on the Dreamcard)"
+msgstr "يُثبَّت أيضًا (kernel.img على Dreamcard)"
+
+#: src/flash.c
+msgid "flashed too (kernel.img in /boot)"
+msgstr "يُثبَّت أيضًا (kernel.img في /boot)"
+
+#: src/flash.c
 msgid "flashed too"
 msgstr "يُثبَّت أيضًا"
 
