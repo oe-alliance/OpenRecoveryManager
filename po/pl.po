@@ -691,6 +691,14 @@ msgid "flashed too (%s)"
 msgstr "również wgrywany (%s)"
 
 #: src/flash.c
+msgid "flashed too (kernel.img on the Dreamcard)"
+msgstr "również wgrywany (kernel.img na Dreamcard)"
+
+#: src/flash.c
+msgid "flashed too (kernel.img in /boot)"
+msgstr "również wgrywany (kernel.img w /boot)"
+
+#: src/flash.c
 msgid "flashed too"
 msgstr "również wgrywany"
 

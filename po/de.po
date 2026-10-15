@@ -696,6 +696,14 @@ msgid "flashed too (%s)"
 msgstr "wird mitgeflasht (%s)"
 
 #: src/flash.c
+msgid "flashed too (kernel.img on the Dreamcard)"
+msgstr "wird mitgeflasht (kernel.img auf der Dreamcard)"
+
+#: src/flash.c
+msgid "flashed too (kernel.img in /boot)"
+msgstr "wird mitgeflasht (kernel.img in /boot)"
+
+#: src/flash.c
 msgid "flashed too"
 msgstr "wird mitgeflasht"
 

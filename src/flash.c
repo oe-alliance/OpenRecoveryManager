@@ -1593,11 +1593,16 @@ static void flash_now(struct ui_context *ui, struct input_context *input, const 
 }
 
 /* The image is unzipped; OK flashes only in the output of a successful check with ofgwrite -n. */
-/* Whether ofgwrite flashes the kernel too, it does only with -k. */
+/* Whether ofgwrite flashes the kernel too, with -k into its partition, with -a as kernel.img of the slot. */
 static void kernel_text(const struct target *t, char *text, size_t size)
 {
 	for (int i = 0; i < t->arg_count; ++i) {
 		const char *device = t->args[i] + 2;
+		if (!strcmp(t->args[i], "-a")) {
+			snprintf(text, size, "%s", strstr(t->args[0], "mmcblk1") ? _("flashed too (kernel.img on the Dreamcard)") :
+				_("flashed too (kernel.img in /boot)"));
+			return;
+		}
 		if (strncmp(t->args[i], "-k", 2))
 			continue;
 		if (!strcmp(t->model, "dm820") || !strcmp(t->model, "dm7080"))
