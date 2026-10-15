@@ -62,6 +62,8 @@ enum font_role { FONT_LOG, FONT_SMALL, FONT_TEXT, FONT_ITEM, FONT_HEAD };
 enum card_kind { CARD_INFO, CARD_WARN, CARD_ERROR, CARD_MUTED };
 
 static struct ui_context *active;  /* The open framebuffer. */
+static int frozen;  /* Another program draws, ORM keeps the framebuffer open but leaves it alone. */
+static struct fb_var_screeninfo frozen_var;  /* The mode and the page when the other program started. */
 static lv_display_t *display;
 static uint8_t *draw_buffer;
 static int screen_width;
@@ -172,7 +174,7 @@ static uint32_t milliseconds(void)
 static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels)
 {
 	const struct ui_context *ui = active;
-	if (ui && ui->screen) {
+	if (ui && ui->screen && !frozen) {
 		size_t width = (size_t)lv_area_get_width(area) * 4;
 		for (int32_t y = area->y1; y <= area->y2; ++y) {
 			size_t offset = (size_t)(y + (int)ui->var.yoffset) * ui->fix.line_length +
@@ -1425,6 +1427,32 @@ void ui_overlay(const struct ui_context *ui, int on)
 		footer_set(below_footer);
 		render();
 	}
+}
+
+void ui_freeze(const struct ui_context *ui, int on)
+{
+	frozen = on;
+	if (on && ui && ui->fd >= 0 && ioctl(ui->fd, FBIOGET_VSCREENINFO, &frozen_var) < 0)
+		memset(&frozen_var, 0, sizeof(frozen_var));
+	if (!on && display) {
+		lv_obj_invalidate(lv_screen_active());
+		frame_hash = 0;
+	}
+}
+
+int ui_unchanged(struct ui_context *ui)
+{
+	struct fb_var_screeninfo now;
+	unsigned char manual = 1;
+	if (!ui || ui->fd < 0 || !ui->screen || !frozen_var.xres || ioctl(ui->fd, FBIOGET_VSCREENINFO, &now) < 0)
+		return 0;
+	if (now.xres != frozen_var.xres || now.yres != frozen_var.yres || now.yres_virtual != frozen_var.yres_virtual ||
+		now.xoffset != frozen_var.xoffset || now.yoffset != frozen_var.yoffset ||
+		now.bits_per_pixel != frozen_var.bits_per_pixel)
+		return 0;
+	if (ui->manual_blit)
+		ioctl(ui->fd, FBIO_SET_MANUAL_BLIT, &manual);
+	return 1;
 }
 
 void ui_redraw(const struct ui_context *ui)
