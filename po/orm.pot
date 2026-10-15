@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-08 00:48+0200\n"
+"POT-Creation-Date: 2026-10-15 11:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -632,20 +632,20 @@ msgid "Flashing"
 msgstr ""
 
 #: src/flash.c
+msgid "flashed too (kernel.img on the Dreamcard)"
+msgstr ""
+
+#: src/flash.c
+msgid "flashed too (kernel.img in /boot)"
+msgstr ""
+
+#: src/flash.c
 msgid "flashed too, kernel A of all slots"
 msgstr ""
 
 #: src/flash.c
 #, c-format
 msgid "flashed too (%s)"
-msgstr ""
-
-#: src/flash.c
-msgid "flashed too (kernel.img on the Dreamcard)"
-msgstr ""
-
-#: src/flash.c
-msgid "flashed too (kernel.img in /boot)"
 msgstr ""
 
 #: src/flash.c
