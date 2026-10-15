@@ -98,6 +98,8 @@ void ui_error(const struct ui_context *ui, const char *title, const char *messag
 /* Like ui_error with the keys of ui_keys in the footer. */
 void ui_error_keys(const struct ui_context *ui, const char *title, const char *message, const char *footer_keys);
 void ui_redraw(const struct ui_context *ui);
+/* While on, nothing reaches the screen, which another program draws over; off draws all again. */
+void ui_freeze(const struct ui_context *ui, int on);
 /* A spinner and the running time also when the footer offers keys, e.g. "BACK: Cancel" of a download. Without
  * keys in the footer they are shown anyway. */
 void ui_busy(const struct ui_context *ui, int on);

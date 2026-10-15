@@ -62,6 +62,7 @@ enum font_role { FONT_LOG, FONT_SMALL, FONT_TEXT, FONT_ITEM, FONT_HEAD };
 enum card_kind { CARD_INFO, CARD_WARN, CARD_ERROR, CARD_MUTED };
 
 static struct ui_context *active;  /* The open framebuffer. */
+static int frozen;  /* Another program draws, ORM keeps the framebuffer open but leaves it alone. */
 static lv_display_t *display;
 static uint8_t *draw_buffer;
 static int screen_width;
@@ -172,7 +173,7 @@ static uint32_t milliseconds(void)
 static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels)
 {
 	const struct ui_context *ui = active;
-	if (ui && ui->screen) {
+	if (ui && ui->screen && !frozen) {
 		size_t width = (size_t)lv_area_get_width(area) * 4;
 		for (int32_t y = area->y1; y <= area->y2; ++y) {
 			size_t offset = (size_t)(y + (int)ui->var.yoffset) * ui->fix.line_length +
@@ -1424,6 +1425,16 @@ void ui_overlay(const struct ui_context *ui, int on)
 		frame_hash = below_hash;
 		footer_set(below_footer);
 		render();
+	}
+}
+
+void ui_freeze(const struct ui_context *ui, int on)
+{
+	(void)ui;
+	frozen = on;
+	if (!on && display) {
+		lv_obj_invalidate(lv_screen_active());
+		frame_hash = 0;
 	}
 }
 

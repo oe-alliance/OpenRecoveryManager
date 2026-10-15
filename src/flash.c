@@ -411,11 +411,30 @@ static const char *short_device(const char *device)  /* "/dev/mmcblk0p3".split("
 	return strncmp(device, "/dev/", 5) ? device : device + 5;
 }
 
+struct feature_search {
+	const char *name;
+	int found;
+};
+
+static void feature_line(const char *line, void *opaque)
+{
+	struct feature_search *search = opaque;
+	size_t length = strlen(search->name);
+	if (!strncmp(line, search->name, length) && strchr("\r\n", line[length]))
+		search->found = 1;
+}
+
+/* Whether ofgwrite_bin --features names feature on a line of its own. */
+static int ofgwrite_feature(const char *feature)
+{
+	struct feature_search search = {feature, 0};
+	char *const features[] = {"/usr/bin/ofgwrite_bin", "--features", NULL};
+	return process_run(features, NULL, feature_line, &search) == 0 && search.found;
+}
+
 static int dream_kernel_a(void)
 {
-	char output[512] = "";
-	char *const features[] = {"/usr/bin/ofgwrite_bin", "--features", NULL};
-	return process_capture(features, output, sizeof(output)) == 0 && strstr(output, "dream-kernel-a");
+	return ofgwrite_feature("dream-kernel-a");
 }
 
 static void kexec_args(struct target *t, const char *rootfs)
@@ -1451,19 +1470,27 @@ static void check_tick(void *opaque)  /* Again and again, ofgwrite clears the wh
 		OFGWRITE_WIDTH, OFGWRITE_HEIGHT);
 }
 
-/* The command line of ofgwrite, with -n for the check. */
+/* The command line of ofgwrite, with -n for the check, with --dim over ORM. */
 struct ofgwrite_command {
 	char args[MAX_ARGS][80];
+	char language[32];
 	char dir[1024];
-	char *argv[MAX_ARGS + 4];
+	char *argv[MAX_ARGS + 6];
 };
 
-static void ofgwrite_command(struct ofgwrite_command *c, const struct target *t, const char *dir, int check)
+static void ofgwrite_command(struct ofgwrite_command *c, const struct target *t, const char *dir, int check,
+	int dim)
 {
 	int argc = 0;
 	c->argv[argc++] = OFGWRITE;
 	if (check)
 		c->argv[argc++] = "-n";
+	if (dim)
+		c->argv[argc++] = "--dim";
+	if (ofgwrite_feature("lang")) {  /* The language chosen in ORM, which may differ from the one of Enigma2. */
+		snprintf(c->language, sizeof(c->language), "--lang=%.2s", i18n_locale());
+		c->argv[argc++] = c->language;
+	}
 	for (int i = 0; i < t->arg_count; ++i) {
 		memcpy(c->args[i], t->args[i], sizeof(c->args[i]));
 		c->argv[argc++] = c->args[i];
@@ -1477,16 +1504,20 @@ static int run_check(struct ui_context *ui, const struct target *t, const char *
 {
 	static struct check_state state;
 	struct ofgwrite_command command;
+	int dim = ofgwrite_feature("dim");
 	int result;
-	ofgwrite_command(&command, t, dir, 1);
+	ofgwrite_command(&command, t, dir, 1, dim);
 	memset(output, 0, sizeof(*output));
 	output->ui = ui;
 	output->title = NULL;
 	state.ui = ui;
 	state.lines.count = 0;
 	check_tick(&state);
-	/* ofgwrite draws its window also with -n, ORM draws around it. */
+	/* ofgwrite draws its window also with -n. A newer one darkens ORM around it, which waits without drawing;
+	 * an older one clears the screen, ORM draws around it again and again. */
+	ui_freeze(ui, dim);
 	result = process_run_with_updates(command.argv, NULL, check_line, check_tick, 200, &state);
+	ui_freeze(ui, 0);
 	ui_close(ui);  /* ofgwrite changed the mode and ended the manual blit. */
 	ui_open(ui);
 	for (int i = 0; i < state.lines.count; ++i) {
@@ -1548,11 +1579,15 @@ static void flash_now(struct ui_context *ui, struct input_context *input, const 
 	size_t length = 0;
 	int status = -1;
 	int daemonized;
+	int dim = ofgwrite_feature("dim");
 	pid_t pid;
-	ofgwrite_command(&command, t, dir, 0);
+	ofgwrite_command(&command, t, dir, 0, dim);
 	remove_restore_flags();  /* A clean flash, the wizard offers the restore. */
 	sync();
-	ui_close(ui);
+	if (dim)  /* Like the check, a dialog over ORM, which waits without drawing. */
+		ui_freeze(ui, 1);
+	else
+		ui_close(ui);
 	pid = fork();
 	if (pid == 0) {
 		int log = open(FLASH_LOG, O_WRONLY | O_CREAT | O_TRUNC, 0644);  /* In /tmp, ofgwrite takes it along to the new root. */
@@ -1579,6 +1614,10 @@ static void flash_now(struct ui_context *ui, struct input_context *input, const 
 			if (stop && *stop)
 				_exit(0);
 		}
+	}
+	if (dim) {
+		ui_freeze(ui, 0);
+		ui_close(ui);  /* ofgwrite changed the mode and ended the manual blit. */
 	}
 	ui_open(ui);
 	memset(&output, 0, sizeof(output));
