@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 10:39+0100\n"
+"POT-Creation-Date: 2026-10-25 09:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1253,16 +1253,6 @@ msgid_plural "%s, %d changed files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/repair.c src/update.c
-msgid "Updating the package lists"
-msgstr ""
-
-#: src/repair.c
-msgid ""
-"The package lists could not be updated, nothing was changed. The repair "
-"needs the feed."
-msgstr ""
-
 #: src/repair.c
 #, c-format
 msgid ""
@@ -1280,6 +1270,16 @@ msgid "The foreign file is moved aside first."
 msgid_plural "The foreign files are moved aside first."
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/repair.c src/update.c
+msgid "Updating the package lists"
+msgstr ""
+
+#: src/repair.c
+msgid ""
+"The package lists could not be updated, nothing was changed. The repair "
+"needs the feed."
+msgstr ""
 
 #: src/repair.c
 msgid "Installing Enigma2 again"
