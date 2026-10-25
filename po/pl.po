@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:25+0000\n"
+"POT-Creation-Date: 2026-10-25 10:38+0100\n"
 "PO-Revision-Date: 2026-10-03 09:42+0100\n"
 "Last-Translator: StreamF\n"
 "Language-Team: Polish\n"
@@ -121,8 +121,8 @@ msgstr "Wybierz"
 msgid "Show"
 msgstr "Pokaż"
 
-#: src/main.c src/flash.c src/files.c src/plugins.c src/about.c src/language.c
-#: src/ui.c
+#: src/main.c src/flash.c src/files.c src/plugins.c src/repair.c src/about.c
+#: src/language.c src/ui.c
 msgid "Back"
 msgstr "Wstecz"
 
@@ -162,7 +162,7 @@ msgstr "Czas trwania"
 msgid "Message"
 msgstr "Komunikat"
 
-#: src/main.c src/flash.c src/update.c src/about.c src/viewer.c
+#: src/main.c src/flash.c src/repair.c src/update.c src/about.c src/viewer.c
 msgid "Scroll"
 msgstr "Przewiń"
 
@@ -204,8 +204,8 @@ msgid "Send crash report"
 msgstr "Wyślij zgłoszenie awarii"
 
 #: src/main.c src/plugins.c
-msgid "Disable plugins"
-msgstr "Wyłącz wtyczki"
+msgid "Repair Enigma2"
+msgstr "Napraw Enigma2"
 
 #: src/main.c src/update.c
 msgid "Software update"
@@ -229,11 +229,13 @@ msgstr "Uruchom inny slot"
 
 #: src/main.c
 msgid ""
-"Starts Enigma2 again. If a plugin keeps it from starting, disable the plugin "
-"first."
+"Starts Enigma2 again. If a plugin or a file of a skin keeps it from "
+"starting, repair Enigma2 first. You can disable faulty plugins and install "
+"Enigma2 again."
 msgstr ""
-"Uruchamia ponownie Enigma2. Jeśli wtyczka blokuje uruchomienie, najpierw ją "
-"wyłącz."
+"Uruchamia ponownie Enigma2. Jeśli wtyczka lub plik skórki uniemożliwia "
+"uruchomienie, najpierw napraw Enigma2. Możesz wyłączyć wadliwe wtyczki i "
+"ponownie zainstalować Enigma2."
 
 #: src/main.c
 msgid ""
@@ -245,13 +247,13 @@ msgstr ""
 
 #: src/main.c
 msgid ""
-"Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables "
-"it again. A plugin that caused problems at the last start is marked and "
-"chosen at first."
+"Restores the original files of Enigma2 and keeps it from loading a plugin, "
+"temporarily or permanently. A plugin that caused problems at the last start "
+"is marked and chosen at first. The settings stay."
 msgstr ""
-"Blokuje wczytywanie wtyczki przez Enigma2 tymczasowo lub na stałe oraz "
-"włącza ją ponownie. Wtyczka, która spowodowała problemy przy ostatnim "
-"uruchomieniu, jest oznaczona i wybrana jako pierwsza."
+"Przywraca oryginalne pliki Enigma2 i blokuje wczytywanie wtyczki, tymczasowo "
+"lub na stałe. Wtyczka, która sprawiła problemy przy ostatnim uruchomieniu, "
+"jest zaznaczona i wybrana na początku. Ustawienia zostają."
 
 #: src/main.c
 msgid ""
@@ -492,7 +494,7 @@ msgstr "Nie można utworzyć %s: %s"
 msgid "%s cannot be changed: %s"
 msgstr "Nie można zmienić %s: %s"
 
-#: src/reset.c src/plugins.c
+#: src/reset.c src/plugins.c src/repair.c
 #, c-format
 msgid "%s cannot be moved: %s"
 msgstr "Nie można przenieść %s: %s"
@@ -601,8 +603,8 @@ msgstr "Nie znaleziono obrazów"
 msgid "Loading the images of %s."
 msgstr "Wczytywanie obrazów %s."
 
-#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/update.c
-#: src/viewer.c
+#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/repair.c
+#: src/update.c src/viewer.c
 msgid "Please wait..."
 msgstr "Proszę czekać..."
 
@@ -682,6 +684,14 @@ msgid "Flashing"
 msgstr "Wgrywanie"
 
 #: src/flash.c
+msgid "flashed too (kernel.img on the Dreamcard)"
+msgstr "również wgrywany (kernel.img na Dreamcard)"
+
+#: src/flash.c
+msgid "flashed too (kernel.img in /boot)"
+msgstr "również wgrywany (kernel.img w /boot)"
+
+#: src/flash.c
 msgid "flashed too, kernel A of all slots"
 msgstr "również wgrywany, kernel A wszystkich slotów"
 
@@ -689,14 +699,6 @@ msgstr "również wgrywany, kernel A wszystkich slotów"
 #, c-format
 msgid "flashed too (%s)"
 msgstr "również wgrywany (%s)"
-
-#: src/flash.c
-msgid "flashed too (kernel.img on the Dreamcard)"
-msgstr "również wgrywany (kernel.img na Dreamcard)"
-
-#: src/flash.c
-msgid "flashed too (kernel.img in /boot)"
-msgstr "również wgrywany (kernel.img w /boot)"
 
 #: src/flash.c
 msgid "flashed too"
@@ -892,7 +894,7 @@ msgstr ""
 msgid "The backup cannot be prepared."
 msgstr "Nie można przygotować kopii zapasowej."
 
-#: src/backup.c src/update.c
+#: src/backup.c src/repair.c src/update.c
 msgid "Please wait, do not switch off the receiver..."
 msgstr "Proszę czekać, nie wyłączaj odbiornika..."
 
@@ -999,7 +1001,8 @@ msgstr ""
 "wszystkie dane."
 
 #: src/crash.c
-msgid "Crash reports are not installed. The CrashReporter plugin provides them."
+msgid ""
+"Crash reports are not installed. The CrashReporter plugin provides them."
 msgstr ""
 "Zgłoszenia awarii nie są zainstalowane. Zapewnia je wtyczka CrashReporter."
 
@@ -1095,6 +1098,10 @@ msgstr "Przełączanie na slot."
 msgid "The slot could not be switched."
 msgstr "Nie można przełączyć slotu."
 
+#: src/plugins.c src/repair.c
+msgid "Enigma2 system files"
+msgstr "Pliki systemowe Enigma2"
+
 #: src/plugins.c
 msgid "Plugin"
 msgstr "Wtyczka"
@@ -1178,6 +1185,46 @@ msgid "Disable"
 msgstr "Wyłącz"
 
 #: src/plugins.c
+#, c-format
+msgid "%d foreign file"
+msgid_plural "%d foreign files"
+msgstr[0] "%d obcy plik"
+msgstr[1] "%d obce pliki"
+msgstr[2] "%d obcych plików"
+
+#: src/plugins.c
+#, c-format
+msgid "%d changed file"
+msgid_plural "%d changed files"
+msgstr[0] "%d zmieniony plik"
+msgstr[1] "%d zmienione pliki"
+msgstr[2] "%d zmienionych plików"
+
+#: src/plugins.c
+msgid "System"
+msgstr "System"
+
+#: src/plugins.c src/repair.c
+msgid "Repair"
+msgstr "Napraw"
+
+#: src/plugins.c
+msgid ""
+"A file of Enigma2 that was changed after it was installed caused the "
+"problem. Repair the system files of Enigma2 in the first row."
+msgstr ""
+"Problem spowodował plik Enigma2 zmieniony po instalacji. Napraw pliki "
+"systemowe Enigma2 w pierwszym wierszu."
+
+#: src/plugins.c
+msgid ""
+"A file that a skin or add-on put into the folders of Enigma2 caused the "
+"problem. Repair the system files of Enigma2 in the first row."
+msgstr ""
+"Problem spowodował plik, który skórka lub dodatek umieścił w folderach "
+"Enigma2. Napraw pliki systemowe Enigma2 w pierwszym wierszu."
+
+#: src/plugins.c
 msgid ""
 "The plugin that caused the problem is marked. Changes take effect when "
 "Enigma2 starts again."
@@ -1197,14 +1244,20 @@ msgstr[2] ""
 #: src/plugins.c
 msgid ""
 "No plugin caused the problem, Enigma2 itself is affected. Disabling plugins "
-"does not help here, a software update or flashing an image can."
+"does not help here, repairing the system files of Enigma2 in the first row, "
+"a software update or flashing an image can."
 msgstr ""
-"Żadna wtyczka nie spowodowała problemu, dotyczy on samej Enigma2. Wyłączanie "
-"wtyczek tu nie pomoże, pomoże aktualizacja oprogramowania lub wgranie obrazu."
+"Problemu nie spowodowała żadna wtyczka, dotyczy on samej Enigma2. Wyłączenie "
+"wtyczek tu nie pomoże, pomóc może naprawa plików systemowych Enigma2 w "
+"pierwszym wierszu, aktualizacja oprogramowania lub wgranie obrazu."
 
 #: src/plugins.c
-msgid "Changes take effect when Enigma2 starts again."
-msgstr "Zmiany zostaną zastosowane po ponownym uruchomieniu Enigma2."
+msgid ""
+"The first row restores the original files of Enigma2, the plugins below are "
+"disabled and enabled. Changes take effect when Enigma2 starts again."
+msgstr ""
+"Pierwszy wiersz przywraca oryginalne pliki Enigma2, wtyczki poniżej są "
+"wyłączane i włączane. Zmiany zaczną działać po ponownym uruchomieniu Enigma2."
 
 #: src/plugins.c
 msgid ""
@@ -1255,8 +1308,141 @@ msgstr ""
 "Nie zostaną one wczytane, dopóki jest wyłączona. Wyłączyć mimo to?"
 
 #: src/plugins.c
-msgid "No plugins were found."
-msgstr "Nie znaleziono wtyczek."
+msgid "Checking the plugins and the system files..."
+msgstr "Sprawdzanie wtyczek i plików systemowych..."
+
+#: src/repair.c
+msgid ""
+"This file does not belong to any installed package. A skin or add-on put it "
+"into the folders of Enigma2, where it can replace a file of Enigma2. The "
+"repair moves it aside and installs Enigma2 again from the feed, you are "
+"asked before."
+msgid_plural ""
+"These files do not belong to any installed package. A skin or add-on put "
+"them into the folders of Enigma2, where they can replace files of Enigma2. "
+"The repair moves them aside and installs Enigma2 again from the feed, you "
+"are asked before."
+msgstr[0] ""
+"Ten plik nie należy do żadnego zainstalowanego pakietu. Skórka lub dodatek "
+"umieścił go w folderach Enigma2, gdzie może zastąpić plik Enigma2. Naprawa "
+"odkłada go na bok i ponownie instaluje Enigma2 z feedu, wcześniej zostaniesz "
+"zapytany."
+msgstr[1] ""
+"Te pliki nie należą do żadnego zainstalowanego pakietu. Skórka lub dodatek "
+"umieścił je w folderach Enigma2, gdzie mogą zastąpić pliki Enigma2. Naprawa "
+"odkłada je na bok i ponownie instaluje Enigma2 z feedu, wcześniej zostaniesz "
+"zapytany."
+msgstr[2] ""
+"Te pliki nie należą do żadnego zainstalowanego pakietu. Skórka lub dodatek "
+"umieścił je w folderach Enigma2, gdzie mogą zastąpić pliki Enigma2. Naprawa "
+"odkłada je na bok i ponownie instaluje Enigma2 z feedu, wcześniej zostaniesz "
+"zapytany."
+
+#: src/repair.c
+msgid ""
+"This file of Enigma2 was changed after it was installed, e.g. by a file of a "
+"skin or add-on. The repair installs Enigma2 again from the feed, which "
+"restores it, you are asked before."
+msgid_plural ""
+"These files of Enigma2 were changed after it was installed, e.g. by a file "
+"of a skin or add-on. The repair installs Enigma2 again from the feed, which "
+"restores them, you are asked before."
+msgstr[0] ""
+"Ten plik Enigma2 został zmieniony po instalacji, np. przez plik skórki lub "
+"dodatku. Naprawa ponownie instaluje Enigma2 z feedu, co go przywraca, "
+"wcześniej zostaniesz zapytany."
+msgstr[1] ""
+"Te pliki Enigma2 zostały zmienione po instalacji, np. przez plik skórki lub "
+"dodatku. Naprawa ponownie instaluje Enigma2 z feedu, co je przywraca, "
+"wcześniej zostaniesz zapytany."
+msgstr[2] ""
+"Te pliki Enigma2 zostały zmienione po instalacji, np. przez plik skórki lub "
+"dodatku. Naprawa ponownie instaluje Enigma2 z feedu, co je przywraca, "
+"wcześniej zostaniesz zapytany."
+
+#: src/repair.c
+msgid ""
+"No foreign files were found. The repair installs Enigma2 again from the "
+"feed, which restores its original files, you are asked before."
+msgstr ""
+"Nie znaleziono obcych plików. Naprawa ponownie instaluje Enigma2 z feedu, co "
+"przywraca jej oryginalne pliki, wcześniej zostaniesz zapytany."
+
+#: src/repair.c
+msgid "Changed files of Enigma2, installing it again restores them:"
+msgstr "Zmienione pliki Enigma2, ponowna instalacja je przywraca:"
+
+#: src/repair.c
+#, c-format
+msgid "%s, %d foreign file"
+msgid_plural "%s, %d foreign files"
+msgstr[0] "%s, %d obcy plik"
+msgstr[1] "%s, %d obce pliki"
+msgstr[2] "%s, %d obcych plików"
+
+#: src/repair.c
+#, c-format
+msgid "%s, %d changed file"
+msgid_plural "%s, %d changed files"
+msgstr[0] "%s, %d zmieniony plik"
+msgstr[1] "%s, %d zmienione pliki"
+msgstr[2] "%s, %d zmienionych plików"
+
+#: src/repair.c src/update.c
+msgid "Updating the package lists"
+msgstr "Aktualizowanie list pakietów"
+
+#: src/repair.c
+msgid ""
+"The package lists could not be updated, nothing was changed. The repair "
+"needs the feed."
+msgstr ""
+"Nie udało się zaktualizować list pakietów, nic nie zostało zmienione. "
+"Naprawa wymaga dostępu do feedu."
+
+#: src/repair.c
+#, c-format
+msgid ""
+"The feed has Enigma2 %s, installed is %s. The repair installs it without the "
+"other packages, the software update updates all of them. Repair anyway?"
+msgstr ""
+"Feed ma Enigma2 %s, zainstalowana jest %s. Naprawa instaluje ją bez "
+"pozostałych pakietów, aktualizacja oprogramowania aktualizuje wszystkie. "
+"Naprawić mimo to?"
+
+#: src/repair.c
+#, c-format
+msgid "Install Enigma2 %s again from the feed now?"
+msgstr "Zainstalować teraz ponownie Enigma2 %s z feedu?"
+
+#: src/repair.c
+msgid "The foreign file is moved aside first."
+msgid_plural "The foreign files are moved aside first."
+msgstr[0] "Obcy plik zostanie najpierw odłożony na bok."
+msgstr[1] "Obce pliki zostaną najpierw odłożone na bok."
+msgstr[2] "Obce pliki zostaną najpierw odłożone na bok."
+
+#: src/repair.c
+msgid "Installing Enigma2 again"
+msgstr "Ponowna instalacja Enigma2"
+
+#: src/repair.c
+#, c-format
+msgid ""
+"Enigma2 is installed again, the foreign files are in %s. Restart Enigma2 in "
+"the menu."
+msgstr ""
+"Enigma2 została ponownie zainstalowana, obce pliki są w %s. Uruchom ponownie "
+"Enigma2 w menu."
+
+#: src/repair.c
+msgid "Enigma2 is installed again. Restart Enigma2 in the menu."
+msgstr ""
+"Enigma2 została ponownie zainstalowana. Uruchom ponownie Enigma2 w menu."
+
+#: src/repair.c
+msgid "Enigma2 could not be installed again."
+msgstr "Nie udało się ponownie zainstalować Enigma2."
 
 #: src/update.c
 msgid "feed status unknown"
@@ -1315,10 +1501,6 @@ msgid ""
 msgstr ""
 "Repozytorium tego obrazu jest właśnie aktualizowane lub wyłączone. Spróbuj "
 "zaktualizować później."
-
-#: src/update.c
-msgid "Updating the package lists"
-msgstr "Aktualizowanie list pakietów"
 
 #: src/update.c
 msgid "The package lists could not be updated."

@@ -351,7 +351,7 @@ static const char *names[] = {  /* Translated where they are shown. */
 	N_("Restart Enigma2"),
 	N_("Show crash log"),
 	N_("Send crash report"),
-	N_("Disable plugins"),
+	N_("Repair Enigma2"),
 	N_("Software update"),
 	N_("Reset settings"),
 	N_("Back up image"),
@@ -371,11 +371,12 @@ static void preview(const struct ui_context *ui, int item, const struct watch_re
 	const char *footer)
 {
 	static const char *texts[] = {
-		N_("Starts Enigma2 again. If a plugin keeps it from starting, disable the plugin first."),
+		N_("Starts Enigma2 again. If a plugin or a file of a skin keeps it from starting, repair Enigma2 first. You "
+			"can disable faulty plugins and install Enigma2 again."),
 		N_("Shows the newest crash log of Enigma2. BLUE shows the steps of the last start."),
 		NULL,  /* With the distribution, see below. */
-		N_("Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables it again. A plugin that "
-			"caused problems at the last start is marked and chosen at first."),
+		N_("Restores the original files of Enigma2 and keeps it from loading a plugin, temporarily or permanently. "
+			"A plugin that caused problems at the last start is marked and chosen at first. The settings stay."),
 		N_("Installs the latest updates for your receiver. You see the list and confirm before anything is "
 			"installed."),
 		N_("Resets the skin, the settings or all of Enigma2 to the state of a new installation. Your old settings "
@@ -502,7 +503,7 @@ static int open_entry(struct ui_context *ui, struct input_context *input, int se
 			return 1;
 		break;
 	case ACTION_PLUGINS:
-		disable_plugins(ui, input, &stop_requested, system_cause[0] ? system_cause : NULL);
+		repair_enigma2(ui, input, &stop_requested, system_cause[0] ? system_cause : NULL);
 		break;
 	case ACTION_RESET:
 		reset_settings(ui, input, &stop_requested);

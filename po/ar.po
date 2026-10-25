@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:25+0000\n"
+"POT-Creation-Date: 2026-10-25 10:38+0100\n"
 "PO-Revision-Date: 2026-09-30 09:30+0200\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: Arabic\n"
@@ -119,8 +119,8 @@ msgstr "تحديد"
 msgid "Show"
 msgstr "عرض"
 
-#: src/main.c src/flash.c src/files.c src/plugins.c src/about.c src/language.c
-#: src/ui.c
+#: src/main.c src/flash.c src/files.c src/plugins.c src/repair.c src/about.c
+#: src/language.c src/ui.c
 msgid "Back"
 msgstr "رجوع"
 
@@ -166,7 +166,7 @@ msgstr "المدة"
 msgid "Message"
 msgstr "الرسالة"
 
-#: src/main.c src/flash.c src/update.c src/about.c src/viewer.c
+#: src/main.c src/flash.c src/repair.c src/update.c src/about.c src/viewer.c
 msgid "Scroll"
 msgstr "تمرير"
 
@@ -208,8 +208,8 @@ msgid "Send crash report"
 msgstr "إرسال تقرير العطل"
 
 #: src/main.c src/plugins.c
-msgid "Disable plugins"
-msgstr "تعطيل الإضافات"
+msgid "Repair Enigma2"
+msgstr "إصلاح Enigma2"
 
 #: src/main.c src/update.c
 msgid "Software update"
@@ -233,9 +233,12 @@ msgstr "الإقلاع من فتحة أخرى"
 
 #: src/main.c
 msgid ""
-"Starts Enigma2 again. If a plugin keeps it from starting, disable the plugin "
-"first."
-msgstr "يعيد تشغيل Enigma2. إذا كانت إضافة تمنع التشغيل، فعطّلها أولاً."
+"Starts Enigma2 again. If a plugin or a file of a skin keeps it from "
+"starting, repair Enigma2 first. You can disable faulty plugins and install "
+"Enigma2 again."
+msgstr ""
+"يعيد تشغيل Enigma2. إذا منعت إضافة أو ملف من سمة التشغيل، فأصلح Enigma2 "
+"أولًا. يمكنك تعطيل الإضافات المعطوبة وإعادة تثبيت Enigma2."
 
 #: src/main.c
 msgid ""
@@ -245,12 +248,13 @@ msgstr "يعرض أحدث سجل أعطال لـ Enigma2. يعرض BLUE خطوا
 
 #: src/main.c
 msgid ""
-"Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables "
-"it again. A plugin that caused problems at the last start is marked and "
-"chosen at first."
+"Restores the original files of Enigma2 and keeps it from loading a plugin, "
+"temporarily or permanently. A plugin that caused problems at the last start "
+"is marked and chosen at first. The settings stay."
 msgstr ""
-"يمنع Enigma2 من تحميل إضافة، مؤقتًا أو بشكل دائم، ويفعّلها مرة أخرى. الإضافة "
-"التي سببت مشاكل في آخر تشغيل تكون مميزة ومحددة مسبقًا."
+"يستعيد الملفات الأصلية لـ Enigma2 ويمنعه من تحميل إضافة مؤقتًا أو نهائيًا. "
+"الإضافة التي سببت مشاكل في آخر تشغيل تكون معلَّمة ومختارة مسبقًا. تبقى "
+"الإعدادات كما هي."
 
 #: src/main.c
 msgid ""
@@ -486,7 +490,7 @@ msgstr "لا يمكن إنشاء %s: %s"
 msgid "%s cannot be changed: %s"
 msgstr "لا يمكن تعديل %s: %s"
 
-#: src/reset.c src/plugins.c
+#: src/reset.c src/plugins.c src/repair.c
 #, c-format
 msgid "%s cannot be moved: %s"
 msgstr "لا يمكن نقل %s: %s"
@@ -598,8 +602,8 @@ msgstr "لم يتم العثور على صور"
 msgid "Loading the images of %s."
 msgstr "جارٍ تحميل صور %s."
 
-#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/update.c
-#: src/viewer.c
+#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/repair.c
+#: src/update.c src/viewer.c
 msgid "Please wait..."
 msgstr "يرجى الانتظار..."
 
@@ -679,6 +683,14 @@ msgid "Flashing"
 msgstr "التثبيت"
 
 #: src/flash.c
+msgid "flashed too (kernel.img on the Dreamcard)"
+msgstr "يُثبَّت أيضًا (kernel.img على Dreamcard)"
+
+#: src/flash.c
+msgid "flashed too (kernel.img in /boot)"
+msgstr "يُثبَّت أيضًا (kernel.img في /boot)"
+
+#: src/flash.c
 msgid "flashed too, kernel A of all slots"
 msgstr "يُثبَّت أيضًا، النواة A لكل الفتحات"
 
@@ -686,14 +698,6 @@ msgstr "يُثبَّت أيضًا، النواة A لكل الفتحات"
 #, c-format
 msgid "flashed too (%s)"
 msgstr "يُثبَّت أيضًا (%s)"
-
-#: src/flash.c
-msgid "flashed too (kernel.img on the Dreamcard)"
-msgstr "يُثبَّت أيضًا (kernel.img على Dreamcard)"
-
-#: src/flash.c
-msgid "flashed too (kernel.img in /boot)"
-msgstr "يُثبَّت أيضًا (kernel.img في /boot)"
 
 #: src/flash.c
 msgid "flashed too"
@@ -885,7 +889,7 @@ msgstr ""
 msgid "The backup cannot be prepared."
 msgstr "لا يمكن تجهيز النسخة الاحتياطية."
 
-#: src/backup.c src/update.c
+#: src/backup.c src/repair.c src/update.c
 msgid "Please wait, do not switch off the receiver..."
 msgstr "يرجى الانتظار، لا تُطفئ الجهاز..."
 
@@ -991,7 +995,8 @@ msgstr ""
 "إرساله."
 
 #: src/crash.c
-msgid "Crash reports are not installed. The CrashReporter plugin provides them."
+msgid ""
+"Crash reports are not installed. The CrashReporter plugin provides them."
 msgstr "تقارير الأعطال غير مثبّتة. توفرها إضافة CrashReporter."
 
 #: src/crash.c
@@ -1085,6 +1090,10 @@ msgstr "جارٍ التبديل إلى الفتحة."
 msgid "The slot could not be switched."
 msgstr "تعذّر تبديل الفتحة."
 
+#: src/plugins.c src/repair.c
+msgid "Enigma2 system files"
+msgstr "ملفات نظام Enigma2"
+
 #: src/plugins.c
 msgid "Plugin"
 msgstr "إضافة"
@@ -1171,6 +1180,52 @@ msgid "Disable"
 msgstr "تعطيل"
 
 #: src/plugins.c
+#, c-format
+msgid "%d foreign file"
+msgid_plural "%d foreign files"
+msgstr[0] "%d ملف غريب"
+msgstr[1] "%d ملف غريب"
+msgstr[2] "%d ملفان غريبان"
+msgstr[3] "%d ملفات غريبة"
+msgstr[4] "%d ملفًا غريبًا"
+msgstr[5] "%d ملف غريب"
+
+#: src/plugins.c
+#, c-format
+msgid "%d changed file"
+msgid_plural "%d changed files"
+msgstr[0] "%d ملف معدَّل"
+msgstr[1] "%d ملف معدَّل"
+msgstr[2] "%d ملفان معدَّلان"
+msgstr[3] "%d ملفات معدَّلة"
+msgstr[4] "%d ملفًا معدَّلًا"
+msgstr[5] "%d ملف معدَّل"
+
+#: src/plugins.c
+msgid "System"
+msgstr "النظام"
+
+#: src/plugins.c src/repair.c
+msgid "Repair"
+msgstr "إصلاح"
+
+#: src/plugins.c
+msgid ""
+"A file of Enigma2 that was changed after it was installed caused the "
+"problem. Repair the system files of Enigma2 in the first row."
+msgstr ""
+"تسبب في المشكلة ملف من Enigma2 تم تعديله بعد تثبيته. أصلح ملفات نظام Enigma2 "
+"في السطر الأول."
+
+#: src/plugins.c
+msgid ""
+"A file that a skin or add-on put into the folders of Enigma2 caused the "
+"problem. Repair the system files of Enigma2 in the first row."
+msgstr ""
+"تسبب في المشكلة ملف وضعته سمة أو إضافة في مجلدات Enigma2. أصلح ملفات نظام "
+"Enigma2 في السطر الأول."
+
+#: src/plugins.c
 msgid ""
 "The plugin that caused the problem is marked. Changes take effect when "
 "Enigma2 starts again."
@@ -1194,14 +1249,20 @@ msgstr[5] ""
 #: src/plugins.c
 msgid ""
 "No plugin caused the problem, Enigma2 itself is affected. Disabling plugins "
-"does not help here, a software update or flashing an image can."
+"does not help here, repairing the system files of Enigma2 in the first row, "
+"a software update or flashing an image can."
 msgstr ""
-"لم تتسبب أي إضافة في المشكلة، بل Enigma2 نفسه هو المتأثر. تعطيل الإضافات لا "
-"يفيد هنا، بل يفيد تحديث البرامج أو تثبيت صورة."
+"لم تتسبب أي إضافة في المشكلة، فـ Enigma2 نفسه هو المتأثر. تعطيل الإضافات لا "
+"يساعد هنا، بينما يمكن أن يساعد إصلاح ملفات نظام Enigma2 في السطر الأول أو "
+"تحديث البرنامج أو تثبيت صورة."
 
 #: src/plugins.c
-msgid "Changes take effect when Enigma2 starts again."
-msgstr "تسري التغييرات عند تشغيل Enigma2 من جديد."
+msgid ""
+"The first row restores the original files of Enigma2, the plugins below are "
+"disabled and enabled. Changes take effect when Enigma2 starts again."
+msgstr ""
+"يستعيد السطر الأول الملفات الأصلية لـ Enigma2، ويتم تعطيل الإضافات أدناه "
+"وتفعيلها. تسري التغييرات عند إعادة تشغيل Enigma2."
 
 #: src/plugins.c
 msgid ""
@@ -1253,8 +1314,163 @@ msgstr ""
 "لن يتم تحميلها ما دام معطّلاً. هل تريد التعطيل على أي حال؟"
 
 #: src/plugins.c
-msgid "No plugins were found."
-msgstr "لم يتم العثور على إضافات."
+msgid "Checking the plugins and the system files..."
+msgstr "جارٍ فحص الإضافات وملفات النظام..."
+
+#: src/repair.c
+msgid ""
+"This file does not belong to any installed package. A skin or add-on put it "
+"into the folders of Enigma2, where it can replace a file of Enigma2. The "
+"repair moves it aside and installs Enigma2 again from the feed, you are "
+"asked before."
+msgid_plural ""
+"These files do not belong to any installed package. A skin or add-on put "
+"them into the folders of Enigma2, where they can replace files of Enigma2. "
+"The repair moves them aside and installs Enigma2 again from the feed, you "
+"are asked before."
+msgstr[0] ""
+"لا ينتمي هذا الملف إلى أي حزمة مثبتة. وضعته سمة أو إضافة في مجلدات Enigma2، "
+"حيث يمكن أن يحل محل ملف من Enigma2. ينقله الإصلاح جانبًا ويعيد تثبيت Enigma2 "
+"من المستودع، وسيُطلب تأكيدك قبل ذلك."
+msgstr[1] ""
+"لا ينتمي هذا الملف إلى أي حزمة مثبتة. وضعته سمة أو إضافة في مجلدات Enigma2، "
+"حيث يمكن أن يحل محل ملف من Enigma2. ينقله الإصلاح جانبًا ويعيد تثبيت Enigma2 "
+"من المستودع، وسيُطلب تأكيدك قبل ذلك."
+msgstr[2] ""
+"لا تنتمي هذه الملفات إلى أي حزمة مثبتة. وضعتها سمة أو إضافة في مجلدات "
+"Enigma2، حيث يمكن أن تحل محل ملفات من Enigma2. ينقلها الإصلاح جانبًا ويعيد "
+"تثبيت Enigma2 من المستودع، وسيُطلب تأكيدك قبل ذلك."
+msgstr[3] ""
+"لا تنتمي هذه الملفات إلى أي حزمة مثبتة. وضعتها سمة أو إضافة في مجلدات "
+"Enigma2، حيث يمكن أن تحل محل ملفات من Enigma2. ينقلها الإصلاح جانبًا ويعيد "
+"تثبيت Enigma2 من المستودع، وسيُطلب تأكيدك قبل ذلك."
+msgstr[4] ""
+"لا تنتمي هذه الملفات إلى أي حزمة مثبتة. وضعتها سمة أو إضافة في مجلدات "
+"Enigma2، حيث يمكن أن تحل محل ملفات من Enigma2. ينقلها الإصلاح جانبًا ويعيد "
+"تثبيت Enigma2 من المستودع، وسيُطلب تأكيدك قبل ذلك."
+msgstr[5] ""
+"لا تنتمي هذه الملفات إلى أي حزمة مثبتة. وضعتها سمة أو إضافة في مجلدات "
+"Enigma2، حيث يمكن أن تحل محل ملفات من Enigma2. ينقلها الإصلاح جانبًا ويعيد "
+"تثبيت Enigma2 من المستودع، وسيُطلب تأكيدك قبل ذلك."
+
+#: src/repair.c
+msgid ""
+"This file of Enigma2 was changed after it was installed, e.g. by a file of a "
+"skin or add-on. The repair installs Enigma2 again from the feed, which "
+"restores it, you are asked before."
+msgid_plural ""
+"These files of Enigma2 were changed after it was installed, e.g. by a file "
+"of a skin or add-on. The repair installs Enigma2 again from the feed, which "
+"restores them, you are asked before."
+msgstr[0] ""
+"تم تعديل ملف Enigma2 هذا بعد تثبيته، مثلًا بواسطة ملف من سمة أو إضافة. يعيد "
+"الإصلاح تثبيت Enigma2 من المستودع مما يستعيده، وسيُطلب تأكيدك قبل ذلك."
+msgstr[1] ""
+"تم تعديل ملف Enigma2 هذا بعد تثبيته، مثلًا بواسطة ملف من سمة أو إضافة. يعيد "
+"الإصلاح تثبيت Enigma2 من المستودع مما يستعيده، وسيُطلب تأكيدك قبل ذلك."
+msgstr[2] ""
+"تم تعديل ملفات Enigma2 هذه بعد تثبيته، مثلًا بواسطة ملف من سمة أو إضافة. يعيد "
+"الإصلاح تثبيت Enigma2 من المستودع مما يستعيدها، وسيُطلب تأكيدك قبل ذلك."
+msgstr[3] ""
+"تم تعديل ملفات Enigma2 هذه بعد تثبيته، مثلًا بواسطة ملف من سمة أو إضافة. يعيد "
+"الإصلاح تثبيت Enigma2 من المستودع مما يستعيدها، وسيُطلب تأكيدك قبل ذلك."
+msgstr[4] ""
+"تم تعديل ملفات Enigma2 هذه بعد تثبيته، مثلًا بواسطة ملف من سمة أو إضافة. يعيد "
+"الإصلاح تثبيت Enigma2 من المستودع مما يستعيدها، وسيُطلب تأكيدك قبل ذلك."
+msgstr[5] ""
+"تم تعديل ملفات Enigma2 هذه بعد تثبيته، مثلًا بواسطة ملف من سمة أو إضافة. يعيد "
+"الإصلاح تثبيت Enigma2 من المستودع مما يستعيدها، وسيُطلب تأكيدك قبل ذلك."
+
+#: src/repair.c
+msgid ""
+"No foreign files were found. The repair installs Enigma2 again from the "
+"feed, which restores its original files, you are asked before."
+msgstr ""
+"لم يتم العثور على ملفات غريبة. يعيد الإصلاح تثبيت Enigma2 من المستودع، مما "
+"يستعيد ملفاته الأصلية، وسيُطلب تأكيدك قبل ذلك."
+
+#: src/repair.c
+msgid "Changed files of Enigma2, installing it again restores them:"
+msgstr "ملفات Enigma2 المعدَّلة، وإعادة تثبيته تستعيدها:"
+
+#: src/repair.c
+#, c-format
+msgid "%s, %d foreign file"
+msgid_plural "%s, %d foreign files"
+msgstr[0] "%s، %d ملف غريب"
+msgstr[1] "%s، %d ملف غريب"
+msgstr[2] "%s، %d ملفان غريبان"
+msgstr[3] "%s، %d ملفات غريبة"
+msgstr[4] "%s، %d ملفًا غريبًا"
+msgstr[5] "%s، %d ملف غريب"
+
+#: src/repair.c
+#, c-format
+msgid "%s, %d changed file"
+msgid_plural "%s, %d changed files"
+msgstr[0] "%s، %d ملف معدَّل"
+msgstr[1] "%s، %d ملف معدَّل"
+msgstr[2] "%s، %d ملفان معدَّلان"
+msgstr[3] "%s، %d ملفات معدَّلة"
+msgstr[4] "%s، %d ملفًا معدَّلًا"
+msgstr[5] "%s، %d ملف معدَّل"
+
+#: src/repair.c src/update.c
+msgid "Updating the package lists"
+msgstr "جارٍ تحديث قوائم الحزم"
+
+#: src/repair.c
+msgid ""
+"The package lists could not be updated, nothing was changed. The repair "
+"needs the feed."
+msgstr ""
+"تعذّر تحديث قوائم الحزم، ولم يتم تغيير أي شيء. يحتاج الإصلاح إلى الوصول إلى "
+"المستودع."
+
+#: src/repair.c
+#, c-format
+msgid ""
+"The feed has Enigma2 %s, installed is %s. The repair installs it without the "
+"other packages, the software update updates all of them. Repair anyway?"
+msgstr ""
+"يحتوي المستودع على Enigma2 %s، والمثبت هو %s. يثبته الإصلاح دون الحزم "
+"الأخرى، بينما يحدّثها تحديث البرنامج جميعًا. هل تريد الإصلاح رغم ذلك؟"
+
+#: src/repair.c
+#, c-format
+msgid "Install Enigma2 %s again from the feed now?"
+msgstr "هل تريد إعادة تثبيت Enigma2 %s من المستودع الآن؟"
+
+#: src/repair.c
+msgid "The foreign file is moved aside first."
+msgid_plural "The foreign files are moved aside first."
+msgstr[0] "سيُنقل الملف الغريب جانبًا أولًا."
+msgstr[1] "سيُنقل الملف الغريب جانبًا أولًا."
+msgstr[2] "ستُنقل الملفات الغريبة جانبًا أولًا."
+msgstr[3] "ستُنقل الملفات الغريبة جانبًا أولًا."
+msgstr[4] "ستُنقل الملفات الغريبة جانبًا أولًا."
+msgstr[5] "ستُنقل الملفات الغريبة جانبًا أولًا."
+
+#: src/repair.c
+msgid "Installing Enigma2 again"
+msgstr "إعادة تثبيت Enigma2"
+
+#: src/repair.c
+#, c-format
+msgid ""
+"Enigma2 is installed again, the foreign files are in %s. Restart Enigma2 in "
+"the menu."
+msgstr ""
+"تمت إعادة تثبيت Enigma2، والملفات الغريبة موجودة في %s. أعد تشغيل Enigma2 من "
+"القائمة."
+
+#: src/repair.c
+msgid "Enigma2 is installed again. Restart Enigma2 in the menu."
+msgstr "تمت إعادة تثبيت Enigma2. أعد تشغيل Enigma2 من القائمة."
+
+#: src/repair.c
+msgid "Enigma2 could not be installed again."
+msgstr "تعذّرت إعادة تثبيت Enigma2."
 
 #: src/update.c
 msgid "feed status unknown"
@@ -1315,10 +1531,6 @@ msgid ""
 msgstr ""
 "مصدر تحديثات هذه الصورة قيد التحديث أو معطّل حاليًا. يرجى إعادة محاولة التحديث "
 "لاحقًا."
-
-#: src/update.c
-msgid "Updating the package lists"
-msgstr "جارٍ تحديث قوائم الحزم"
 
 #: src/update.c
 msgid "The package lists could not be updated."
