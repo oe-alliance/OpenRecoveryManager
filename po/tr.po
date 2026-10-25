@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ORM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 11:03+0000\n"
+"POT-Creation-Date: 2026-10-25 10:38+0100\n"
 "PO-Revision-Date: 2026-10-16 18:00+0300\n"
 "Last-Translator: OE-Alliance Open Recovery Manager contributors\n"
 "Language-Team: Turkish\n"
@@ -119,8 +119,8 @@ msgstr "Seç"
 msgid "Show"
 msgstr "Göster"
 
-#: src/main.c src/flash.c src/files.c src/plugins.c src/about.c src/language.c
-#: src/ui.c
+#: src/main.c src/flash.c src/files.c src/plugins.c src/repair.c src/about.c
+#: src/language.c src/ui.c
 msgid "Back"
 msgstr "Geri"
 
@@ -158,7 +158,7 @@ msgstr "Süre"
 msgid "Message"
 msgstr "Mesaj"
 
-#: src/main.c src/flash.c src/update.c src/about.c src/viewer.c
+#: src/main.c src/flash.c src/repair.c src/update.c src/about.c src/viewer.c
 msgid "Scroll"
 msgstr "Kaydır"
 
@@ -200,8 +200,8 @@ msgid "Send crash report"
 msgstr "Çökme raporunu gönder"
 
 #: src/main.c src/plugins.c
-msgid "Disable plugins"
-msgstr "Eklentileri devre dışı bırak"
+msgid "Repair Enigma2"
+msgstr "Enigma2'yi onar"
 
 #: src/main.c src/update.c
 msgid "Software update"
@@ -225,11 +225,13 @@ msgstr "Başka bir yuvadan başlat"
 
 #: src/main.c
 msgid ""
-"Starts Enigma2 again. If a plugin keeps it from starting, disable the plugin "
-"first."
+"Starts Enigma2 again. If a plugin or a file of a skin keeps it from "
+"starting, repair Enigma2 first. You can disable faulty plugins and install "
+"Enigma2 again."
 msgstr ""
-"Enigma2'yi yeniden başlatır. Bir eklenti başlatılmasını engelliyorsa önce bu "
-"eklentiyi devre dışı bırakın."
+"Enigma2'yi yeniden başlatır. Bir eklenti veya bir skin dosyası başlatmayı "
+"engelliyorsa önce Enigma2'yi onar. Hatalı eklentileri devre dışı bırakabilir "
+"ve Enigma2'yi yeniden yükleyebilirsin."
 
 #: src/main.c
 msgid ""
@@ -241,13 +243,13 @@ msgstr ""
 
 #: src/main.c
 msgid ""
-"Keeps Enigma2 from loading a plugin, temporarily or permanently, and enables "
-"it again. A plugin that caused problems at the last start is marked and "
-"chosen at first."
+"Restores the original files of Enigma2 and keeps it from loading a plugin, "
+"temporarily or permanently. A plugin that caused problems at the last start "
+"is marked and chosen at first. The settings stay."
 msgstr ""
-"Enigma2'nin bir eklentiyi geçici veya kalıcı olarak yüklemesini engeller ve "
-"eklenti yeniden etkinleştirilebilir. Son açılışta sorun çıkaran eklenti "
-"işaretlenir ve varsayılan olarak seçilir."
+"Enigma2'nin orijinal dosyalarını geri yükler ve bir eklentinin yüklenmesini "
+"geçici veya kalıcı olarak engeller. Son başlatmada sorun çıkaran eklenti "
+"işaretlenir ve önceden seçilir. Ayarlar korunur."
 
 #: src/main.c
 msgid ""
@@ -495,7 +497,7 @@ msgstr "%s oluşturulamıyor: %s"
 msgid "%s cannot be changed: %s"
 msgstr "%s değiştirilemiyor: %s"
 
-#: src/reset.c src/plugins.c
+#: src/reset.c src/plugins.c src/repair.c
 #, c-format
 msgid "%s cannot be moved: %s"
 msgstr "%s taşınamıyor: %s"
@@ -605,8 +607,8 @@ msgstr "Hiçbir imaj bulunamadı"
 msgid "Loading the images of %s."
 msgstr "%s imajları yükleniyor."
 
-#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/update.c
-#: src/viewer.c
+#: src/flash.c src/backup.c src/files.c src/crash.c src/slots.c src/repair.c
+#: src/update.c src/viewer.c
 msgid "Please wait..."
 msgstr "Lütfen bekleyin..."
 
@@ -901,7 +903,7 @@ msgstr ""
 msgid "The backup cannot be prepared."
 msgstr "Yedekleme hazırlanamıyor."
 
-#: src/backup.c src/update.c
+#: src/backup.c src/repair.c src/update.c
 msgid "Please wait, do not switch off the receiver..."
 msgstr "Lütfen bekleyin, alıcı cihazı kapatmayın..."
 
@@ -1106,6 +1108,10 @@ msgstr "Yuvaya geçiliyor."
 msgid "The slot could not be switched."
 msgstr "Yuva değiştirilemedi."
 
+#: src/plugins.c src/repair.c
+msgid "Enigma2 system files"
+msgstr "Enigma2 sistem dosyaları"
+
 #: src/plugins.c
 msgid "Plugin"
 msgstr "Eklenti"
@@ -1188,6 +1194,44 @@ msgid "Disable"
 msgstr "Devre dışı bırak"
 
 #: src/plugins.c
+#, c-format
+msgid "%d foreign file"
+msgid_plural "%d foreign files"
+msgstr[0] "%d yabancı dosya"
+msgstr[1] "%d yabancı dosya"
+
+#: src/plugins.c
+#, c-format
+msgid "%d changed file"
+msgid_plural "%d changed files"
+msgstr[0] "%d değiştirilmiş dosya"
+msgstr[1] "%d değiştirilmiş dosya"
+
+#: src/plugins.c
+msgid "System"
+msgstr "Sistem"
+
+#: src/plugins.c src/repair.c
+msgid "Repair"
+msgstr "Onar"
+
+#: src/plugins.c
+msgid ""
+"A file of Enigma2 that was changed after it was installed caused the "
+"problem. Repair the system files of Enigma2 in the first row."
+msgstr ""
+"Sorunu, yüklendikten sonra değiştirilmiş bir Enigma2 dosyası çıkardı. İlk "
+"satırdaki Enigma2 sistem dosyalarını onar."
+
+#: src/plugins.c
+msgid ""
+"A file that a skin or add-on put into the folders of Enigma2 caused the "
+"problem. Repair the system files of Enigma2 in the first row."
+msgstr ""
+"Sorunu, bir skin veya eklentinin Enigma2 klasörlerine koyduğu bir dosya "
+"çıkardı. İlk satırdaki Enigma2 sistem dosyalarını onar."
+
+#: src/plugins.c
 msgid ""
 "The plugin that caused the problem is marked. Changes take effect when "
 "Enigma2 starts again."
@@ -1204,15 +1248,22 @@ msgstr[1] ""
 #: src/plugins.c
 msgid ""
 "No plugin caused the problem, Enigma2 itself is affected. Disabling plugins "
-"does not help here, a software update or flashing an image can."
+"does not help here, repairing the system files of Enigma2 in the first row, "
+"a software update or flashing an image can."
 msgstr ""
-"Soruna hiçbir eklenti neden olmadı; sorun doğrudan Enigma2'nin kendisinde. "
-"Eklentileri devre dışı bırakmak işe yaramaz. Yazılım güncellemesi yapmak "
-"veya bir imaj yüklemek sorunu çözebilir."
+"Sorunun nedeni bir eklenti değil, Enigma2'nin kendisi etkileniyor. "
+"Eklentileri devre dışı bırakmak burada işe yaramaz; ilk satırdaki Enigma2 "
+"sistem dosyalarını onarmak, yazılım güncellemesi veya imaj yüklemek işe "
+"yarar."
 
 #: src/plugins.c
-msgid "Changes take effect when Enigma2 starts again."
-msgstr "Değişiklikler Enigma2 yeniden başlatıldığında geçerli olur."
+msgid ""
+"The first row restores the original files of Enigma2, the plugins below are "
+"disabled and enabled. Changes take effect when Enigma2 starts again."
+msgstr ""
+"İlk satır Enigma2'nin orijinal dosyalarını geri yükler, altındaki eklentiler "
+"devre dışı bırakılır ve etkinleştirilir. Değişiklikler Enigma2 yeniden "
+"başladığında geçerli olur."
 
 #: src/plugins.c
 msgid ""
@@ -1263,8 +1314,128 @@ msgstr ""
 "bırakılsın mı?"
 
 #: src/plugins.c
-msgid "No plugins were found."
-msgstr "Hiçbir eklenti bulunamadı."
+msgid "Checking the plugins and the system files..."
+msgstr "Eklentiler ve sistem dosyaları kontrol ediliyor..."
+
+#: src/repair.c
+msgid ""
+"This file does not belong to any installed package. A skin or add-on put it "
+"into the folders of Enigma2, where it can replace a file of Enigma2. The "
+"repair moves it aside and installs Enigma2 again from the feed, you are "
+"asked before."
+msgid_plural ""
+"These files do not belong to any installed package. A skin or add-on put "
+"them into the folders of Enigma2, where they can replace files of Enigma2. "
+"The repair moves them aside and installs Enigma2 again from the feed, you "
+"are asked before."
+msgstr[0] ""
+"Bu dosya yüklü hiçbir pakete ait değil. Bir skin veya eklenti onu Enigma2 "
+"klasörlerine koymuş, orada Enigma2'nin bir dosyasının yerine geçebilir. "
+"Onarım onu kenara taşır ve Enigma2'yi depodan yeniden yükler, öncesinde sana "
+"sorulur."
+msgstr[1] ""
+"Bu dosyalar yüklü hiçbir pakete ait değil. Bir skin veya eklenti onları "
+"Enigma2 klasörlerine koymuş, orada Enigma2'nin dosyalarının yerine "
+"geçebilirler. Onarım onları kenara taşır ve Enigma2'yi depodan yeniden "
+"yükler, öncesinde sana sorulur."
+
+#: src/repair.c
+msgid ""
+"This file of Enigma2 was changed after it was installed, e.g. by a file of a "
+"skin or add-on. The repair installs Enigma2 again from the feed, which "
+"restores it, you are asked before."
+msgid_plural ""
+"These files of Enigma2 were changed after it was installed, e.g. by a file "
+"of a skin or add-on. The repair installs Enigma2 again from the feed, which "
+"restores them, you are asked before."
+msgstr[0] ""
+"Enigma2'nin bu dosyası yüklendikten sonra değiştirildi, ör. bir skin veya "
+"eklentinin dosyası tarafından. Onarım Enigma2'yi depodan yeniden yükleyerek "
+"onu geri getirir, öncesinde sana sorulur."
+msgstr[1] ""
+"Enigma2'nin bu dosyaları yüklendikten sonra değiştirildi, ör. bir skin veya "
+"eklentinin dosyası tarafından. Onarım Enigma2'yi depodan yeniden yükleyerek "
+"onları geri getirir, öncesinde sana sorulur."
+
+#: src/repair.c
+msgid ""
+"No foreign files were found. The repair installs Enigma2 again from the "
+"feed, which restores its original files, you are asked before."
+msgstr ""
+"Yabancı dosya bulunamadı. Onarım Enigma2'yi depodan yeniden yükleyerek "
+"orijinal dosyalarını geri getirir, öncesinde sana sorulur."
+
+#: src/repair.c
+msgid "Changed files of Enigma2, installing it again restores them:"
+msgstr ""
+"Enigma2'nin değiştirilmiş dosyaları, yeniden yükleme onları geri getirir:"
+
+#: src/repair.c
+#, c-format
+msgid "%s, %d foreign file"
+msgid_plural "%s, %d foreign files"
+msgstr[0] "%s, %d yabancı dosya"
+msgstr[1] "%s, %d yabancı dosya"
+
+#: src/repair.c
+#, c-format
+msgid "%s, %d changed file"
+msgid_plural "%s, %d changed files"
+msgstr[0] "%s, %d değiştirilmiş dosya"
+msgstr[1] "%s, %d değiştirilmiş dosya"
+
+#: src/repair.c src/update.c
+msgid "Updating the package lists"
+msgstr "Paket listeleri güncelleniyor"
+
+#: src/repair.c
+msgid ""
+"The package lists could not be updated, nothing was changed. The repair "
+"needs the feed."
+msgstr ""
+"Paket listeleri güncellenemedi, hiçbir şey değiştirilmedi. Onarım için depo "
+"gereklidir."
+
+#: src/repair.c
+#, c-format
+msgid ""
+"The feed has Enigma2 %s, installed is %s. The repair installs it without the "
+"other packages, the software update updates all of them. Repair anyway?"
+msgstr ""
+"Depoda Enigma2 %s var, yüklü olan %s. Onarım onu diğer paketler olmadan "
+"yükler, yazılım güncellemesi hepsini günceller. Yine de onarılsın mı?"
+
+#: src/repair.c
+#, c-format
+msgid "Install Enigma2 %s again from the feed now?"
+msgstr "Enigma2 %s şimdi depodan yeniden yüklensin mi?"
+
+#: src/repair.c
+msgid "The foreign file is moved aside first."
+msgid_plural "The foreign files are moved aside first."
+msgstr[0] "Yabancı dosya önce kenara taşınır."
+msgstr[1] "Yabancı dosyalar önce kenara taşınır."
+
+#: src/repair.c
+msgid "Installing Enigma2 again"
+msgstr "Enigma2 yeniden yükleniyor"
+
+#: src/repair.c
+#, c-format
+msgid ""
+"Enigma2 is installed again, the foreign files are in %s. Restart Enigma2 in "
+"the menu."
+msgstr ""
+"Enigma2 yeniden yüklendi, yabancı dosyalar %s içinde. Enigma2'yi menüden "
+"yeniden başlat."
+
+#: src/repair.c
+msgid "Enigma2 is installed again. Restart Enigma2 in the menu."
+msgstr "Enigma2 yeniden yüklendi. Enigma2'yi menüden yeniden başlat."
+
+#: src/repair.c
+msgid "Enigma2 could not be installed again."
+msgstr "Enigma2 yeniden yüklenemedi."
 
 #: src/update.c
 msgid "feed status unknown"
@@ -1322,10 +1493,6 @@ msgid ""
 msgstr ""
 "Bu imajın yazılım deposu şu anda güncelleniyor veya devre dışı. Lütfen "
 "güncellemeyi daha sonra tekrar deneyin."
-
-#: src/update.c
-msgid "Updating the package lists"
-msgstr "Paket listeleri güncelleniyor"
 
 #: src/update.c
 msgid "The package lists could not be updated."

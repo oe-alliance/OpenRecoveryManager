@@ -67,7 +67,21 @@ loads the script of the newest release from GitHub into `/tmp`. Its list shows
 the slots with the running one chosen at first, OK restarts the receiver into
 the chosen slot.
 
-Disable plugins keeps Enigma2 from loading a plugin. When Enigma2 knows the
+Repair Enigma2 has the system files of Enigma2 in its first row and the plugins
+below. The first row lists the `.py`, `.pyc` and `.so` files in
+`/usr/lib/enigma2/python` and below its `Components`, `Screens` and `Tools` that
+no installed package has, by the file lists in `/var/lib/opkg/info`; a skin or
+add-on put them there, and a `.py` is loaded instead of the `.pyc` of Enigma2
+next to it. It also lists the python files of the package enigma2 that are newer
+than its `Installed-Time` in `/var/lib/opkg/status`, as python may overwrite a
+`.pyc` of Enigma2 with the code of such a `.py`. The row is marked when such a
+file is in the traceback of the crash log. OK updates the package lists, then asks every time, with both versions when
+the feed has another one, and only then moves the files to
+`/home/root/enigma2-repair-<time>` and runs
+`opkg install --force-reinstall --force-downgrade enigma2`, since files compiled
+from the foreign ones stay otherwise.
+
+A plugin row keeps Enigma2 from loading the plugin. When Enigma2 knows the
 plugin blacklists (openatv/enigma2#3925), OK goes from enabled to disabled
 temporarily (`/tmp/plugin_blacklist`, until the receiver restarts), to disabled
 permanently (`/etc/enigma2/plugin_blacklist`) and back to enabled; nothing is

@@ -26,6 +26,7 @@ SOURCES := \
 	src/console.c \
 	src/slots.c \
 	src/plugins.c \
+	src/repair.c \
 	src/update.c \
 	src/about.c \
 	src/language.c \

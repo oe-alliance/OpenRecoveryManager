@@ -5,6 +5,7 @@
 #include "boxinfo.h"
 #include "crash.h"
 #include "i18n.h"
+#include "repair.h"
 #include "viewer.h"
 #include "watch.h"
 
@@ -17,9 +18,10 @@
 #include <strings.h>
 #include <sys/stat.h>
 
-#define TITLE _("Disable plugins")
+#define TITLE _("Repair Enigma2")
 #define PYTHON "/usr/lib/enigma2/python"
 #define MAX_ITEMS 512
+#define TITLE_SYSTEM _("Enigma2 system files")
 #define BLACKLIST "/etc/enigma2/plugin_blacklist"
 #define BLACKLIST_TEMPORARY "/tmp/plugin_blacklist"
 
@@ -54,6 +56,8 @@ struct list {
 	int count;
 	int blacklist;  /* Enigma2 knows the blacklists. */
 	const char *system_cause;  /* The module of enigma2 that was missing, no plugin is to blame. */
+	struct foreign foreign;  /* The first row, the system files. */
+	int foreign_crashed;  /* A foreign (1) or changed (2) file is in the traceback of the crash. */
 };
 
 static int is_directory(const char *path)
@@ -359,7 +363,7 @@ static void debug_log_problems(struct list *l)
 	fclose(file);
 }
 
-/* Python files of plugins in the traceback of the newest crash log. */
+/* Python files of plugins and foreign files of enigma2 in the traceback of the newest crash log. */
 static void crash_log_problems(struct list *l)
 {
 	char path[512];
@@ -372,8 +376,12 @@ static void crash_log_problems(struct list *l)
 		return;
 	while (fgets(line, sizeof(line), file)) {
 		char *start = strstr(line, "File \"" PYTHON "/");
+		char traced[512];
 		if (!start)
 			continue;
+		snprintf(traced, sizeof(traced), "%.*s", (int)strcspn(start + 6, "\""), start + 6);
+		if (!l->foreign_crashed)
+			l->foreign_crashed = repair_is_foreign(&l->foreign, traced);
 		start += strlen("File \"" PYTHON "/");
 		for (size_t k = 0; k < sizeof(kinds) / sizeof(kinds[0]); ++k) {
 			size_t length = strlen(kinds[k].folder);
@@ -572,20 +580,21 @@ static void load_list(struct list *l)
 	qsort(l->items, (size_t)l->count, sizeof(l->items[0]), by_kind_and_name);
 	start_problem(l);
 	debug_log_problems(l);
+	repair_find_foreign(&l->foreign);
 	crash_log_problems(l);
 }
 
-/* Marks the items with a problem and returns their number, selected is the first of them or 0. */
-static int mark_problems(const struct list *l, char *marks, int *selected)
+/* The problems of the plugins, selected is the first row with a problem or the system files. Row 0 is the
+ * system files, row i + 1 the item i. */
+static int mark_problems(const struct list *l, int *selected)
 {
 	int problems = 0;
-	*selected = -1;
+	*selected = l->foreign_crashed ? 0 : -1;
 	for (int i = 0; i < l->count; ++i)
 		if (l->items[i].problem[0]) {
-			marks[i] = 1;
 			problems++;
 			if (*selected < 0)
-				*selected = i;  /* The first one with a problem is chosen at first. */
+				*selected = i + 1;  /* The first one with a problem is chosen at first. */
 		}
 	if (*selected < 0)
 		*selected = 0;
@@ -603,46 +612,77 @@ static const char *next_action(const struct list *l, const struct item *item)
 	return l->blacklist ? _("Disable temporarily") : _("Disable");
 }
 
+/* The first row: the foreign files and whether one of them is in the traceback of the crash. */
+static void system_row(const struct list *l, char *label, size_t size, char *mark)
+{
+	char problem[160] = "";
+	char foreign[72] = "";
+	char changed[72] = "";
+	if (l->foreign.count)
+		snprintf(foreign, sizeof(foreign), ngettext("%d foreign file", "%d foreign files", l->foreign.count),
+			l->foreign.count);
+	if (l->foreign.changed_count)
+		snprintf(changed, sizeof(changed), ngettext("%d changed file", "%d changed files", l->foreign.changed_count),
+			l->foreign.changed_count);
+	if (l->foreign_crashed)
+		snprintf(problem, sizeof(problem), "%s", _("In the traceback of the crash"));
+	else
+		snprintf(problem, sizeof(problem), "%s%s%s", foreign, foreign[0] && changed[0] ? ", " : "", changed);
+	snprintf(label, size, "%s\t%s\t%s", TITLE_SYSTEM, _("System"), problem);
+	*mark = problem[0] ? 1 : 0;
+}
+
 static void show_list(const struct ui_context *ui, const struct list *l, char (*labels)[300], const char **items,
 	char *marks, int problems, int selected)
 {
 	char footer[128];
-	char body[512];
+	char body[640];
 	char title[128];
 	int disabled = 0;
 	char header[96];
 	ui_keys(footer, sizeof(footer), &(struct ui_key_names){.arrows = _("Select"),
-		.ok = next_action(l, &l->items[selected]), .back = _("Menu")});
-	if (problems)
+		.ok = selected ? next_action(l, &l->items[selected - 1]) : _("Repair"), .back = _("Menu")});
+	if (l->foreign_crashed == 2)
+		snprintf(body, sizeof(body), "%s", _("A file of Enigma2 that was changed after it was installed caused the "
+			"problem. Repair the system files of Enigma2 in the first row."));
+	else if (l->foreign_crashed)
+		snprintf(body, sizeof(body), "%s", _("A file that a skin or add-on put into the folders of Enigma2 caused "
+			"the problem. Repair the system files of Enigma2 in the first row."));
+	else if (problems)
 		snprintf(body, sizeof(body), "%s", ngettext("The plugin that caused the problem is marked. Changes take "
 			"effect when Enigma2 starts again.", "The plugins that caused the problem are marked. Changes take "
 			"effect when Enigma2 starts again.", problems));
 	else if (l->system_cause)
 		snprintf(body, sizeof(body), "%s", _("No plugin caused the problem, Enigma2 itself is affected. Disabling "
-			"plugins does not help here, a software update or flashing an image can."));
+			"plugins does not help here, repairing the system files of Enigma2 in the first row, a software update "
+			"or flashing an image can."));
 	else
-		snprintf(body, sizeof(body), "%s", _("Changes take effect when Enigma2 starts again."));
+		snprintf(body, sizeof(body), "%s", _("The first row restores the original files of Enigma2, the plugins below "
+			"are disabled and enabled. Changes take effect when Enigma2 starts again."));
 	if (l->blacklist)
 		snprintf(body + strlen(body), sizeof(body) - strlen(body), " %s",
 			_("Plugins disabled temporarily are enabled again when the receiver restarts."));
 	snprintf(header, sizeof(header), "%s\t%s\t%s", _("Name"), _("Type"), _("Problem"));
+	system_row(l, labels[0], sizeof(labels[0]), &marks[0]);
+	items[0] = labels[0];
 	for (int i = 0; i < l->count; ++i) {
 		char name[96];
+		char *label = labels[i + 1];
 		if (l->items[i].state == TEMPORARY)
 			snprintf(name, sizeof(name), _("%s (temporarily)"), l->items[i].name);
 		else if (l->items[i].state != ENABLED)
 			snprintf(name, sizeof(name), _("%s (disabled)"), l->items[i].name);
 		else
 			snprintf(name, sizeof(name), "%s", l->items[i].name);
-		snprintf(labels[i], sizeof(labels[i]), "%s\t%s\t%s", name, _(kinds[l->items[i].kind].type),
+		snprintf(label, sizeof(labels[0]), "%s\t%s\t%s", name, _(kinds[l->items[i].kind].type),
 			l->items[i].problem);
-		items[i] = labels[i];
+		items[i + 1] = label;
 		if (l->items[i].problem[0])
-			marks[i] = 1;  /* Yellow. */
+			marks[i + 1] = 1;  /* Yellow. */
 		else if (l->items[i].state != ENABLED)
-			marks[i] = 2;  /* Grey. */
+			marks[i + 1] = 2;  /* Grey. */
 		else
-			marks[i] = 0;
+			marks[i + 1] = 0;
 	}
 	for (int i = 0; i < l->count; ++i)
 		disabled += l->items[i].state != ENABLED;
@@ -651,7 +691,7 @@ static void show_list(const struct ui_context *ui, const struct list *l, char (*
 	else
 		snprintf(title, sizeof(title), "%s", TITLE);
 	ui_menu_table(ui, &(struct ui_menu){.title = title, .body = body, .header = header, .items = items,
-		.count = l->count, .selected = selected, .marks = marks, .marked = -1, .footer = footer});
+		.count = l->count + 1, .selected = selected, .marks = marks, .marked = -1, .footer = footer});
 }
 
 /* 1 when nothing enabled uses item index or the user disables it anyway. */
@@ -699,35 +739,40 @@ static void toggle_item(const struct ui_context *ui, struct input_context *input
 	}
 }
 
-void disable_plugins(const struct ui_context *ui, struct input_context *input,
+void repair_enigma2(const struct ui_context *ui, struct input_context *input,
 	const volatile sig_atomic_t *stop, const char *system_cause)
 {
 	struct list *l = calloc(1, sizeof(*l));
-	char (*labels)[300] = calloc(MAX_ITEMS, sizeof(*labels));
-	const char **items = calloc(MAX_ITEMS, sizeof(*items));
-	char *marks = calloc(MAX_ITEMS, 1);
+	char (*labels)[300] = calloc(MAX_ITEMS + 1, sizeof(*labels));
+	const char **items = calloc(MAX_ITEMS + 1, sizeof(*items));
+	char *marks = calloc(MAX_ITEMS + 1, 1);
 	int problems;
 	int selected;
 	if (!l || !labels || !items || !marks)
 		goto out;
+	ui_screen(ui, TITLE, _("Checking the plugins and the system files..."), " ");
 	load_list(l);
 	l->system_cause = system_cause;
-	problems = mark_problems(l, marks, &selected);
-	while (l->count && !(stop && *stop)) {
+	problems = mark_problems(l, &selected);
+	while (!(stop && *stop)) {
 		enum input_key key;
 		show_list(ui, l, labels, items, marks, problems, selected);
 		key = input_next(input, 1000);
-		selected = list_move(key, selected, l->count);
-		if (key == INPUT_OK)
-			toggle_item(ui, input, stop, l, selected);
+		selected = list_move(key, selected, l->count + 1);
+		if (key == INPUT_OK && selected == 0) {
+			repair_system_files(ui, input, stop, &l->foreign);
+			repair_free_foreign(&l->foreign);
+			repair_find_foreign(&l->foreign);
+			if (!l->foreign.count && !l->foreign.changed_count)
+				l->foreign_crashed = 0;
+		} else if (key == INPUT_OK)
+			toggle_item(ui, input, stop, l, selected - 1);
 		else if (key == INPUT_BACK || key == INPUT_RED)
 			break;
 	}
-	if (l && !l->count) {
-		ui_error(ui, TITLE, _("No plugins were found."));
-		wait_ok(input, stop);
-	}
 out:
+	if (l)
+		repair_free_foreign(&l->foreign);
 	free(marks);
 	free(items);
 	free(labels);
