@@ -778,6 +778,32 @@ static int display_setup(const struct ui_context *ui)
 	return 1;
 }
 
+/* 1280 x 720 with 32 bits like Enigma2 sets it, when the framebuffer is still in a smaller mode of its driver,
+ * e.g. before Enigma2 started: the layout and its fonts are made for at least this width. */
+static void set_mode(struct ui_context *ui)
+{
+	struct fb_var_screeninfo var = ui->var;
+	var.xres = 1280;
+	var.xres_virtual = 1280;
+	var.yres = 720;
+	var.yres_virtual = 720 * 2;
+	var.xoffset = 0;
+	var.yoffset = 0;
+	var.height = 0;
+	var.width = 0;
+	var.bits_per_pixel = 32;
+	var.transp = (struct fb_bitfield){24, 8, 0};
+	var.red = (struct fb_bitfield){16, 8, 0};
+	var.green = (struct fb_bitfield){8, 8, 0};
+	var.blue = (struct fb_bitfield){0, 8, 0};
+	if (ioctl(ui->fd, FBIOPUT_VSCREENINFO, &var) < 0) {
+		var.yres_virtual = 720;  /* Without the second page, like Enigma2 tries next. */
+		if (ioctl(ui->fd, FBIOPUT_VSCREENINFO, &var) < 0)
+			return;
+	}
+	ioctl(ui->fd, FBIOGET_VSCREENINFO, &ui->var);
+}
+
 int ui_open(struct ui_context *ui)
 {
 	unsigned char manual = 1;
@@ -789,8 +815,11 @@ int ui_open(struct ui_context *ui)
 	open_device(ui);
 	if (ui->fd < 0)
 		return 0;
-	if (ioctl(ui->fd, FBIOGET_VSCREENINFO, &ui->var) < 0 ||
-		ioctl(ui->fd, FBIOGET_FSCREENINFO, &ui->fix) < 0)
+	if (ioctl(ui->fd, FBIOGET_VSCREENINFO, &ui->var) < 0)
+		goto failed;
+	if (ui->var.xres < 1280 || ui->var.bits_per_pixel != 32)
+		set_mode(ui);
+	if (ioctl(ui->fd, FBIOGET_FSCREENINFO, &ui->fix) < 0)
 		goto failed;
 	if (ui->var.bits_per_pixel != 32) {  /* Enigma2 sets 32 bits. */
 		errno = ENOTSUP;
