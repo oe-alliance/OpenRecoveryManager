@@ -135,7 +135,7 @@ make CC=<cross compiler>
 The version is `ORM_VERSION` in `include/version.h`; a push of a new
 version to master tags and releases it as `v<version>`.
 
-The fonts in `src/fonts` are rendered by `tools/mkfonts.sh`, see
+The fonts in `src/fonts/orm_font.c` are built by `tools/mkfonts.sh`, see
 `tools/fonts/README.md`, and the licenses of the About screen in
 `include/licenses.h` by `tools/mklicenses.py`.
 
@@ -161,5 +161,5 @@ Foundation, version 3, see `LICENSE`.
 It contains, under their own licenses, which the About screen (INFO) shows:
 
 - LVGL (MIT, `lib/lvgl`) with the QR code generator of Project Nayuki (MIT).
-- The font, rendered from DejaVu Sans, and icons of Font Awesome Free
+- The font, reduced from DejaVu Sans, and icons of Font Awesome Free
   (SIL OFL 1.1), see `tools/fonts`.

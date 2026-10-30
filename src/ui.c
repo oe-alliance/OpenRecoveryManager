@@ -26,13 +26,10 @@
 #define FBIO_BLIT 0x22
 #endif
 
-LV_FONT_DECLARE(orm_font_14)
-LV_FONT_DECLARE(orm_font_16)
-LV_FONT_DECLARE(orm_font_18)
-LV_FONT_DECLARE(orm_font_20)
-LV_FONT_DECLARE(orm_font_24)
-LV_FONT_DECLARE(orm_font_28)
-LV_FONT_DECLARE(orm_font_32)
+extern const unsigned char orm_font_ttf[];  /* src/fonts/orm_font.c */
+extern const size_t orm_font_ttf_size;
+extern const unsigned char orm_icons_ttf[];
+extern const size_t orm_icons_ttf_size;
 
 #define COLOR_GROUND 0x0b1016
 #define COLOR_SURFACE 0x121a23
@@ -58,7 +55,7 @@ LV_FONT_DECLARE(orm_font_32)
 #define MAX_COLUMNS 8
 #define DRAW_ROWS 120  /* Of the screen, drawn at once. */
 
-enum font_role { FONT_LOG, FONT_SMALL, FONT_TEXT, FONT_ITEM, FONT_HEAD };
+enum font_role { FONT_LOG, FONT_SMALL, FONT_TEXT, FONT_ITEM, FONT_HEAD, FONT_ROLES };
 enum card_kind { CARD_INFO, CARD_WARN, CARD_ERROR, CARD_MUTED };
 
 static struct ui_context *active;  /* The open framebuffer. */
@@ -68,6 +65,8 @@ static lv_display_t *display;
 static uint8_t *draw_buffer;
 static int screen_width;
 static int screen_height;
+static lv_font_t *fonts[FONT_ROLES];  /* In the size of the screen. */
+static lv_font_t *icon_font;  /* Of the menu, behind its font. */
 static lv_obj_t *header;
 static lv_obj_t *header_title;
 static lv_obj_t *header_remote;
@@ -112,6 +111,17 @@ static uint64_t frame_hash;
 static uint64_t below_hash;  /* Of the screen below a dialog, */
 static char below_footer[512];  /* and its keys. */
 
+/* The widths of the columns of the text view, measured once for its lines: the lines stay while they scroll and
+ * only grow while they are live. */
+static struct {
+	const char *const *lines;
+	const char *header_text;
+	const char *last;  /* The last line measured, */
+	int count;  /* of so many. */
+	int widths[MAX_COLUMNS];
+} measured;
+static int text_shown;  /* The screen is the text view, so measured holds its lines. */
+
 static uint64_t hash_int(uint64_t hash, long value)
 {
 	for (size_t i = 0; i < sizeof(value); ++i)
@@ -144,10 +154,51 @@ static int px(int value)
 
 static const lv_font_t *font(enum font_role role)
 {
-	static const lv_font_t *const full[] = {&orm_font_20, &orm_font_20, &orm_font_24, &orm_font_28, &orm_font_32};
+	return fonts[role] ? fonts[role] : LV_FONT_DEFAULT;
+}
+
+static int font_size(enum font_role role)
+{
+	static const int full[] = {20, 20, 24, 28, 32};  /* For 1920 x 1080. */
 	/* About two thirds for 1280 x 720, so the longer translations fit as well. */
-	static const lv_font_t *const small[] = {&orm_font_14, &orm_font_14, &orm_font_16, &orm_font_18, &orm_font_24};
-	return screen_width >= 1600 ? full[role] : small[role];
+	static const int small[] = {14, 14, 16, 18, 24};
+	int size = screen_width >= 1600 ? full[role] * screen_width / 1920 : small[role] * screen_width / 1280;
+	return size > 8 ? size : 8;
+}
+
+static void fonts_destroy(void)
+{
+	for (int i = 0; i < FONT_ROLES; ++i)
+		if (fonts[i]) {
+			lv_tiny_ttf_destroy(fonts[i]);
+			fonts[i] = NULL;
+		}
+	if (icon_font) {
+		lv_tiny_ttf_destroy(icon_font);
+		icon_font = NULL;
+	}
+}
+
+/* The fonts in the size of the screen, rendered from the built-in TTF. */
+static void fonts_create(void)
+{
+	fonts_destroy();
+	for (int i = 0; i < FONT_ROLES; ++i) {
+		/* The log measures and draws the most characters, kerning would cost there and not show in its digits. */
+		fonts[i] = lv_tiny_ttf_create_data_ex(orm_font_ttf, orm_font_ttf_size, font_size(i),
+			i == FONT_LOG ? LV_FONT_KERNING_NONE : LV_FONT_KERNING_NORMAL, i == FONT_LOG ? 256 : 128);
+		/* The line height of the former bitmap fonts, a third more than the size. */
+		int height = (font_size(i) * 4 + 2) / 3;
+		if (fonts[i] && height > fonts[i]->line_height) {
+			fonts[i]->base_line += (height - fonts[i]->line_height) / 2;
+			fonts[i]->line_height = height;
+		}
+	}
+	icon_font = lv_tiny_ttf_create_data_ex(orm_icons_ttf, orm_icons_ttf_size, font_size(FONT_ITEM),
+		LV_FONT_KERNING_NONE, 16);
+	if (fonts[FONT_ITEM])
+		fonts[FONT_ITEM]->fallback = icon_font;
+	measured.lines = NULL;
 }
 
 static int remote_state(void)
@@ -719,6 +770,7 @@ static lv_obj_t *page(const char *title)
 	lv_obj_t *parent = modal ? modal : detail;
 	lv_obj_t *root;
 	lv_obj_clean(parent);
+	text_shown = 0;
 	root = column(parent, px(24));
 	if (!modal)
 		lv_obj_set_height(root, LV_PCT(100));
@@ -766,6 +818,7 @@ static int display_setup(const struct ui_context *ui)
 	}
 	screen_width = (int)ui->var.xres;
 	screen_height = (int)ui->var.yres;
+	fonts_create();  /* After the labels with the old ones went. */
 	draw_buffer = malloc((size_t)screen_width * DRAW_ROWS * 4);
 	display = lv_display_create(screen_width, screen_height);
 	if (!draw_buffer || !display)
@@ -1261,6 +1314,28 @@ void ui_error(const struct ui_context *ui, const char *title, const char *messag
 	ui_error_keys(ui, title, message, footer_keys);
 }
 
+/* The widths of the columns of lines, measured only for the lines added since the text view drew them last. */
+static void text_columns(const char *header_text, const char *const lines[], int count, int widths[MAX_COLUMNS])
+{
+	const lv_font_t *font_used = font(FONT_LOG);
+	int from = measured.count;
+	if (!text_shown || measured.lines != lines || measured.header_text != header_text || count < measured.count ||
+		(measured.count && lines[measured.count - 1] != measured.last)) {  /* Others, or the oldest went. */
+		memset(&measured, 0, sizeof(measured));
+		measured.lines = lines;
+		measured.header_text = header_text;
+		if (header_text)
+			measure_columns(header_text, measured.widths, font_used);
+		from = 0;
+	}
+	for (int i = from; i < count; ++i)  /* All lines, so the columns do not jump when scrolling. */
+		if (lines[i] && strchr(lines[i], '\t'))
+			measure_columns(lines[i], measured.widths, font_used);
+	measured.count = count;
+	measured.last = count ? lines[count - 1] : NULL;
+	memcpy(widths, measured.widths, sizeof(measured.widths));
+}
+
 /* The lines of ui_text in a sunken view, returns the rows that fit. */
 static int text_view(const char *title, const char *header_text, const char *const lines[], int count, int first,
 	const char *align, const char *footer_keys)
@@ -1271,9 +1346,13 @@ static int text_view(const char *title, const char *header_text, const char *con
 	int gap = px(6);
 	int height;
 	int rows;
-	lv_obj_t *root = page(title);
-	lv_obj_t *view = filler(root);
+	lv_obj_t *root;
+	lv_obj_t *view;
 	lv_obj_t *text;
+	text_columns(header_text, lines, count, widths);
+	root = page(title);
+	view = filler(root);
+	text_shown = 1;
 	footer_set(footer_keys);
 	fill(view, COLOR_SUNKEN);
 	lv_obj_set_style_radius(view, px(12), 0);
@@ -1285,11 +1364,6 @@ static int text_view(const char *title, const char *header_text, const char *con
 	rows = (height + gap) / (line_height + gap) - (header_text ? 1 : 0);
 	if (rows < 1)
 		rows = 1;
-	if (header_text)
-		measure_columns(header_text, widths, font_used);
-	for (int i = 0; i < count; ++i)  /* All lines, so the columns do not jump when scrolling. */
-		if (lines[i] && strchr(lines[i], '\t'))
-			measure_columns(lines[i], widths, font_used);
 	text = column(view, gap);
 	lv_obj_set_width(text, LV_SIZE_CONTENT);
 	lv_obj_set_flex_grow(text, 1);

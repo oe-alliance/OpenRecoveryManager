@@ -2,7 +2,7 @@
 #define RECOVERY_VERSION_H
 
 #ifndef ORM_VERSION
-#define ORM_VERSION "1.8"
+#define ORM_VERSION "1.9"
 #endif
 
 #ifndef ORM_REVISION
